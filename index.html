@@ -1,0 +1,37 @@
+<html>
+<head>
+    <title>GOTD - "Gotti"</title>
+</head>
+<body onload="loadgif();">
+       <iframe id="gif-frame" src="" width="100%" height="100%" style="position:absolute" frameBorder="0"></iframe>
+
+<script type="text/javascript" language="javascript">
+    function fetchAndUpdate() {
+        // get the new value here
+        var frame = document.getElementById("gif-frame");
+        var gifRequest = new Request('gif')
+        fetch(gifRequest)
+            .then(function(response) {
+                if(response.ok) {
+                    return response.json();
+                }
+                throw new Error("Unable to fetch the gif")
+            })
+            .then(function(myJson) {
+                console.log(JSON.stringify(myJson))
+                var value = myJson["url"];
+                if( value == fetchAndUpdate.currvalue ) {
+                    return;
+                }
+                frame.setAttribute("src", value);
+                fetchAndUpdate.currvalue = value;
+            })
+    }
+
+    function loadgif() {
+        fetchAndUpdate();
+        setInterval(fetchAndUpdate, 60000);
+    }
+</script>
+</body>
+</html>
