@@ -42,7 +42,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		newGif := &postgres.GOTD{
-			GIF: s.Text,
+			GIF: fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text),
 		}
 		err := DB.Insert(newGif)
 		if err != nil {
