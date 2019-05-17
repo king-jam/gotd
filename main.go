@@ -12,6 +12,7 @@ import (
 )
 
 var UserList = []string{"val", "kingj2"}
+var DB *postgres.DBClient
 
 func getenv(name string) string {
 	env := os.Getenv(name)
@@ -35,14 +36,18 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch s.Command {
 	case "/gotd":
-		gifURL := &slack.Msg{Text: s.Text}.Text
-		userName := &slack.Msg{Text: s.Text}.Username
+		gifURL := slack.Msg{Text: s.Text}.Text
+		userName := slack.Msg{Text: s.Text}.Username
 		isMember := validateUser(userName)
 
 		if !isMember {
 			return
 		}
-		err := db.Insert(db, GOTD{gifURL: gifURL})
+		err := DB.Insert(postgres.GOTD{URL: gifURL})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -74,11 +79,11 @@ func main() {
 		log.Fatal("Invalid Database URL format")
 	}
 
-	db, err := postgres.InitDatabase(dbURL)
+	DB, err := postgres.InitDatabase(dbURL)
 	if err != nil {
 		log.Fatal("Unable to initialize the Database")
 	}
-	defer db.Close()
+	defer DB.Close()
 
 	http.HandleFunc("/receive", slashCommandHandler)
 

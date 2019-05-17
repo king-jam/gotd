@@ -1,10 +1,14 @@
 package postgres
 
 import (
+	"fmt"
 	"net/url"
 
+	"github.com/alexbyk/panicif"
 	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 )
+
 type DBClient struct {
 	db *pg.DB
 }
@@ -14,19 +18,19 @@ type Schema struct {
 }
 
 type GOTD struct {
-	ID string,
-	url string
+	ID  string
+	URL string
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
 func InitDatabase(url *url.URL) (*DBClient, error) {
 	options, err := pg.ParseURL(url.String())
 	if err != nil {
-		return nil, fmt.Errorf("Failure to parse opts: %s," err)
+		return nil, fmt.Errorf("Failure to parse opts: %s", err)
 	}
 
 	db := pg.Connect(options)
-	
+
 	// if !db.HasTable(&TokenData{}) {
 	// 	db.CreateTable(&TokenData{})
 	// }
@@ -37,22 +41,23 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 			Temp:          false, // create temp table
 			FKConstraints: false,
 		})
-		panicIf(err)
-		
+		panicif.Err(err)
+
 	}
 	return &DBClient{
-		Db: db,
+		db: db,
 	}, nil
 }
 
-func (c *DBClient) Insert(db, gotd GOTD) error {
+func (c *DBClient) Insert(gotd GOTD) error {
 	err := c.db.Insert(&gotd)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 // Close wraps the db close function for easy cleanup
 func (c *DBClient) Close() {
-	b.db.Close()
+	c.db.Close()
 }
