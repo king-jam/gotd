@@ -113,7 +113,7 @@ func main() {
 	}
 
 	users, err := getUserList()
-	log.Print(users)
+	log.Printf("List of users %s", users)
 
 	dbURL, err := url.Parse(dbString)
 	if err != nil {
