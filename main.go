@@ -25,6 +25,7 @@ func getenv(name string) string {
 func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	s, err := slack.SlashCommandParse(r)
 	if err != nil {
+		log.Print("failed to parse command")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -45,10 +46,12 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		err := DB.Insert(newGif)
 		if err != nil {
+			log.Print("failed to insert into db")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	default:
+		log.Print("invalid command")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
