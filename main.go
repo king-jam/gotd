@@ -109,7 +109,7 @@ func main() {
 	defer DB.Close()
 
 	http.HandleFunc("/receive", slashCommandHandler)
-	http.HandleFunc("/dashboard/gif", gifHandler)
+	http.HandleFunc("/gif", gifHandler)
 	http.Handle("/", http.FileServer(http.Dir("./static/dashboard")))
 
 	fmt.Println("[INFO] Server listening")
