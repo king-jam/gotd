@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
@@ -31,6 +32,10 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channelID := s.ChannelID
+	members, _ := getUserList(channelID)
+
+	log.Printf("List of users %s", members)
 	if !s.ValidateToken(os.Getenv("SLACK_VERIFICATION_TOKEN")) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -44,20 +49,18 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 			return
 		}
-		channelID := s.ChannelID
-		members, _ := getUserList(channelID)
-
-		log.Printf("List of users %s", members)
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
 		log.Print(url)
-		newGif := &postgres.GOTD{
-			GIF: url,
-		}
-		err := DB.UpdateGIF(newGif)
-		if err != nil {
-			log.Print("failed to insert into db")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+		if validateURL(url) {
+			newGif := &postgres.GOTD{
+				GIF: url,
+			}
+			err := DB.UpdateGIF(newGif)
+			if err != nil {
+				log.Print("failed to insert into db")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		}
 	default:
 		log.Print("invalid command")
@@ -73,6 +76,12 @@ func validUser(userId string) bool {
 		}
 	}
 	return false
+}
+
+func validateURL(url string) bool {
+	// Validate if string is from giphy
+	isValid := strings.Contains(url, "giphy.com")
+	return isValid
 }
 
 // func getUserList() ([]string, error) {
