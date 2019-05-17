@@ -34,6 +34,7 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	err = db.CreateTable(&GOTD{}, &orm.CreateTableOptions{
 		Temp:          false, // create temp table
 		FKConstraints: false,
+		IfNotExists:   true,
 	})
 	panicif.Err(err)
 
