@@ -38,9 +38,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	case "/gotd":
 		gifURL := slack.Msg{Text: s.Text}.Text
 		userName := slack.Msg{Text: s.Text}.Username
-		isMember := validateUser(userName)
-
-		if !isMember {
+		if !validUser(userName) {
 			return
 		}
 		err := DB.Insert(postgres.GOTD{URL: gifURL})
@@ -54,13 +52,14 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validateUser(userId string) bool {
-	for i := range UserList {
-		if userId == UserList[i] {
-			return true
-		}
-	}
-	return false
+func validUser(userId string) bool {
+	return true
+	// for i := range UserList {
+	// 	if userId == UserList[i] {
+	// 		return true
+	// 	}
+	// }
+	// return false
 }
 
 func main() {

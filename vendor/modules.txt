@@ -1,8 +1,10 @@
+# github.com/alexbyk/panicif v1.0.2
+github.com/alexbyk/panicif
 # github.com/go-pg/pg v8.0.4+incompatible
 github.com/go-pg/pg
+github.com/go-pg/pg/orm
 github.com/go-pg/pg/internal
 github.com/go-pg/pg/internal/pool
-github.com/go-pg/pg/orm
 github.com/go-pg/pg/types
 github.com/go-pg/pg/internal/iszero
 github.com/go-pg/pg/internal/parser
