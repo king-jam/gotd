@@ -61,6 +61,10 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+		} else {
+			response := "Please use giphy for your gif"
+			w.Write([]byte(response))
+			return
 		}
 	default:
 		log.Print("invalid command")
