@@ -14,7 +14,7 @@ type DBClient struct {
 }
 
 type GOTD struct {
-	ID  string
+	ID  int
 	GIF string
 }
 
