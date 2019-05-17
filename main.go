@@ -31,11 +31,6 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	channelID := s.ChannelID
-	members, _ := getUserList(channelID)
-
-	log.Printf("List of users %s", members)
 	if !s.ValidateToken(os.Getenv("SLACK_VERIFICATION_TOKEN")) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -51,6 +46,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
+
 		log.Printf("%s", s.ChannelName)
 		if validateURL(url) {
 			newGif := &postgres.GOTD{
