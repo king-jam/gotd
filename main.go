@@ -49,8 +49,9 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 			return
 		}
+
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
-		log.Print(url)
+		log.Printf("%s", s.ChannelName)
 		if validateURL(url) {
 			newGif := &postgres.GOTD{
 				GIF: url,
