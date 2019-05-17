@@ -35,7 +35,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch s.Command {
-	case "/gotd":
+	case "gotd":
 		userName := slack.Msg{Text: s.Text}.Username
 		if !validUser(userName) {
 			return
@@ -89,5 +89,5 @@ func main() {
 	http.HandleFunc("/receive", slashCommandHandler)
 
 	fmt.Println("[INFO] Server listening")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
