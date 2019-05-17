@@ -1,0 +1,5 @@
+# ignore IDE files/folders
+.vscode
+
+# ignore built binaries
+gotd
