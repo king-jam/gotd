@@ -36,12 +36,14 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch s.Command {
 	case "/gotd":
-		gifURL := slack.Msg{Text: s.Text}.Text
 		userName := slack.Msg{Text: s.Text}.Username
 		if !validUser(userName) {
 			return
 		}
-		err := DB.Insert(postgres.GOTD{URL: gifURL})
+		newGif := postgres.GOTD{
+			GIF: slack.Msg{Text: s.Text}.Text,
+		}
+		err := DB.Insert(newGif)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

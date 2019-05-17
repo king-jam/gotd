@@ -13,13 +13,9 @@ type DBClient struct {
 	db *pg.DB
 }
 
-type Schema struct {
-	gif string
-}
-
 type GOTD struct {
 	ID  string
-	URL string
+	GIF string
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
@@ -35,22 +31,19 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	// 	db.CreateTable(&TokenData{})
 	// }
 
-	//Creating Schema
-	for _, model := range []interface{}{Schema{gif: "gifUrl"}} {
-		err := db.CreateTable(model, &orm.CreateTableOptions{
-			Temp:          false, // create temp table
-			FKConstraints: false,
-		})
-		panicif.Err(err)
+	err = db.CreateTable(&GOTD{}, &orm.CreateTableOptions{
+		Temp:          false, // create temp table
+		FKConstraints: false,
+	})
+	panicif.Err(err)
 
-	}
 	return &DBClient{
 		db: db,
 	}, nil
 }
 
-func (c *DBClient) Insert(gotd GOTD) error {
-	err := c.db.Insert(&gotd)
+func (c *DBClient) Insert(gif GOTD) error {
+	err := c.db.Insert(gif)
 	if err != nil {
 		return err
 	}
