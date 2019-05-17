@@ -61,13 +61,12 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func validUser(userId string) bool {
-	return true
-	// for i := range UserList {
-	// 	if userId == UserList[i] {
-	// 		return true
-	// 	}
-	// }
-	// return false
+	for _, user := range UserList {
+		if userId == user {
+			return true
+		}
+	}
+	return false
 }
 
 func gifHandler(w http.ResponseWriter, r *http.Request) {
