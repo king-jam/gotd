@@ -43,8 +43,8 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	}, nil
 }
 
-func (c *DBClient) Insert(gif GOTD) error {
-	err := c.database.Insert(&gif)
+func (c *DBClient) Insert(gif *GOTD) error {
+	err := c.database.Insert(gif)
 	if err != nil {
 		return err
 	}
