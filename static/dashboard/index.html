@@ -6,9 +6,12 @@
     body {
         background-color: #000000
     }
+    iframe{
+    overflow:hidden;
+    }
 </style>
 <body onload="loadgif();">
-       <iframe id="gif-frame" src="" width="95%" height="95%" style="position:absolute" frameBorder="0"></iframe>
+       <iframe id="gif-frame" src="" width="95%" height="95%" style="position:absolute" frameBorder="0" scrolling="no"></iframe>
 
 <script type="text/javascript" language="javascript">
     function fetchAndUpdate() {
