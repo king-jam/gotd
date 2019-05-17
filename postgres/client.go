@@ -10,7 +10,7 @@ import (
 )
 
 type DBClient struct {
-	db *pg.DB
+	database *pg.DB
 }
 
 type GOTD struct {
@@ -25,13 +25,13 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 		return nil, fmt.Errorf("Failure to parse opts: %s", err)
 	}
 
-	db := pg.Connect(options)
+	pgdb := pg.Connect(options)
 
 	// if !db.HasTable(&TokenData{}) {
 	// 	db.CreateTable(&TokenData{})
 	// }
 
-	err = db.CreateTable(&GOTD{}, &orm.CreateTableOptions{
+	err = pgdb.CreateTable(&GOTD{}, &orm.CreateTableOptions{
 		Temp:          false, // create temp table
 		FKConstraints: false,
 		IfNotExists:   true,
@@ -39,12 +39,12 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	panicif.Err(err)
 
 	return &DBClient{
-		db: db,
+		database: pgdb,
 	}, nil
 }
 
 func (c *DBClient) Insert(gif GOTD) error {
-	err := c.db.Insert(gif)
+	err := c.database.Insert(gif)
 	if err != nil {
 		return err
 	}
@@ -53,5 +53,5 @@ func (c *DBClient) Insert(gif GOTD) error {
 
 // Close wraps the db close function for easy cleanup
 func (c *DBClient) Close() {
-	c.db.Close()
+	c.database.Close()
 }
