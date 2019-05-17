@@ -40,6 +40,8 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	case "/gotd":
 		userName := s.UserName
 		if !validUser(userName) {
+			response := "You are not a member of this channel"
+			w.Write([]byte(response))
 			return
 		}
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
