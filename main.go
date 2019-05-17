@@ -36,7 +36,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch s.Command {
-	case "gotd":
+	case "/gotd":
 		userName := slack.Msg{Text: s.Text}.Username
 		if !validUser(userName) {
 			return
