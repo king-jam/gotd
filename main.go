@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -69,6 +70,22 @@ func validUser(userId string) bool {
 	// return false
 }
 
+func gifHandler(w http.ResponseWriter, r *http.Request) {
+	gif, err := DB.LatestGIF()
+	if err != nil {
+		log.Print("failed to get latest GIF")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	response, err := json.Marshal(gif)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -92,6 +109,8 @@ func main() {
 	defer DB.Close()
 
 	http.HandleFunc("/receive", slashCommandHandler)
+	http.HandleFunc("/gif", gifHandler)
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 
 	fmt.Println("[INFO] Server listening")
 	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)

@@ -27,7 +27,7 @@ type DBClient struct {
 
 type GOTD struct {
 	gorm.Model
-	GIF string
+	GIF string `json:"url"`
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
