@@ -12,7 +12,7 @@ import (
 	"github.com/nlopes/slack"
 )
 
-var UserList = []string{"val", "kingj2"}
+var UserList = []string{"val", "king-jam", "minh.nguyen", "Aman"}
 var DB *postgres.DBClient
 
 func getenv(name string) string {
@@ -71,6 +71,20 @@ func validUser(userId string) bool {
 	return false
 }
 
+func getUserList() ([]string, error) {
+	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
+	api := slack.New(token)
+	users, err := api.GetUsers()
+	var usernames []string
+	if err != nil {
+		return nil, err
+	}
+	for i := range users {
+		usernames = append(usernames, users[i].Name)
+	}
+	return usernames, nil
+}
+
 func gifHandler(w http.ResponseWriter, r *http.Request) {
 	gif, err := DB.LatestGIF()
 	if err != nil {
@@ -97,6 +111,9 @@ func main() {
 	if dbString == "" {
 		log.Fatal("$DATABASE_URL must be set")
 	}
+
+	users, err := getUserList()
+	log.Print(users)
 
 	dbURL, err := url.Parse(dbString)
 	if err != nil {
