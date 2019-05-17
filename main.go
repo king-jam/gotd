@@ -44,6 +44,10 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 			return
 		}
+		channelID := s.ChannelID
+		members, _ := getUserList(channelID)
+
+		log.Printf("List of users %s", members)
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
 		log.Print(url)
 		newGif := &postgres.GOTD{
@@ -71,18 +75,29 @@ func validUser(userId string) bool {
 	return false
 }
 
-func getUserList() ([]string, error) {
+// func getUserList() ([]string, error) {
+// 	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
+// 	api := slack.New(token)
+// 	users, err := api.GetUsers()
+// 	var usernames []string
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	for i := range users {
+// 		usernames = append(usernames, users[i].Name)
+// 	}
+// 	return usernames, nil
+// }
+
+func getUserList(channelID string) ([]string, error) {
 	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
 	api := slack.New(token)
-	users, err := api.GetUsers()
-	var usernames []string
+	channel, err := api.GetChannelInfo(channelID)
 	if err != nil {
 		return nil, err
 	}
-	for i := range users {
-		usernames = append(usernames, users[i].Name)
-	}
-	return usernames, nil
+	members := channel.Members
+	return members, nil
 }
 
 func gifHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,9 +126,6 @@ func main() {
 	if dbString == "" {
 		log.Fatal("$DATABASE_URL must be set")
 	}
-
-	users, err := getUserList()
-	log.Printf("List of users %s", users)
 
 	dbURL, err := url.Parse(dbString)
 	if err != nil {
