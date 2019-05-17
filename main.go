@@ -46,7 +46,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		newGif := &postgres.GOTD{
 			GIF: url,
 		}
-		err := DB.Insert(newGif)
+		err := DB.UpdateGIF(newGif)
 		if err != nil {
 			log.Print("failed to insert into db")
 			w.WriteHeader(http.StatusInternalServerError)

@@ -68,6 +68,37 @@ func (c *DBClient) Update(gif *GOTD) error {
 	return nil
 }
 
+func (c *DBClient) UpdateGIF(gif *GOTD) error {
+	current, err := c.LatestGIF()
+	if err != nil {
+		if err == ErrRecordNotFound {
+			err = c.Insert(gif)
+			if err != nil {
+				return err
+			}
+		}
+		return err
+	}
+	// otherwise just update it
+	gif.ID = current.ID
+	err = c.Update(gif)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *DBClient) LatestGIF() (*GOTD, error) {
+	gif := new(GOTD)
+	if result := c.db.Model(&GOTD{}).First(gif); result.Error != nil {
+		if gorm.IsRecordNotFoundError(result.Error) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, ErrDatabaseGeneral(result.Error.Error())
+	}
+	return gif, nil
+}
+
 // Close wraps the db close function for easy cleanup
 func (c *DBClient) Close() {
 	c.db.Close()
