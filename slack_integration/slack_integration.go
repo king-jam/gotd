@@ -66,7 +66,6 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 			return
 		}
-		log.Printf("%s", s.ChannelName)
 		if validateURL(u) {
 			newGif := &postgres.CurrentGOTD{
 				GIF: u.String(),
