@@ -12,7 +12,24 @@ import (
 	"github.com/nlopes/slack"
 )
 
-var UserList = []string{"val", "king-jam", "minh.nguyen", "Aman"}
+var UserIdList = []string{
+	"U5SFY08HW", // Ethan
+	"U5SFZ590Q", // Val
+	"UGG0Y2W82", //Aman
+	"U5UAGKX4L", //Amy
+	"U5U133V3Q", //Geoff
+	"U5U0X61DM", // Joe
+	"U5U1DSEQ7", // Justin
+	"U61HFJ7V2", // Kranti
+	"UFJRQ2S2F", // Minh
+	"UFDAJLGJU", // Viet
+	"U5V5T2DPZ", // Dale
+	"UGYDW6UJK", // Edgardo
+	"U5T9HLMAN", // James King
+	"UEK11RZJP", // Sammie
+	"UHH0LLBND", // Sandesh
+	"U5SFZ590Q", // Val
+}
 var DB *postgres.DBClient
 
 func getenv(name string) string {
@@ -34,13 +51,11 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	members, err := getUserList()
-	log.Print("List of members \n")
-	log.Print(members)
+
 	switch s.Command {
 	case "/gotd":
-		userName := s.UserName
-		if !validUser(userName) {
+		userId := s.UserID
+		if !validateUser(userId) {
 			response := "You don't have permission to change GOTD"
 			w.Write([]byte(response))
 			return
@@ -76,8 +91,8 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validUser(userId string) bool {
-	for _, user := range UserList {
+func validateUser(userId string) bool {
+	for _, user := range UserIdList {
 		if userId == user {
 			return true
 		}
@@ -90,18 +105,18 @@ func validateURL(url *url.URL) bool {
 	return url.Hostname() == "giphy.com"
 }
 
-func getUserList() ([]string, error) {
-	channelId := os.Getenv("CHANNEL_ID")
-	api := slack.New(os.Getenv("CLIENT_TOKEN"))
-	channel, err := api.GetChannelInfo(channelId)
-	if err != nil {
-		log.Print("Error getting channel info")
-		return nil, err
-	}
-	members := channel.Members
-	log.Printf("Number of members in this channel: %d", channel.NumMembers)
-	return members, nil
-}
+// func getUserList() ([]string, error) {
+// 	channelId := os.Getenv("CHANNEL_ID")
+// 	api := slack.New(os.Getenv("CLIENT_TOKEN"))
+// 	channel, err := api.GetChannelInfo(channelId)
+// 	if err != nil {
+// 		log.Print("Error getting channel info")
+// 		return nil, err
+// 	}
+// 	members := channel.Members
+// 	log.Printf("Number of members in this channel: %d", channel.NumMembers)
+// 	return members, nil
+// }
 
 func gifHandler(w http.ResponseWriter, r *http.Request) {
 	gif, err := DB.LatestGIF()
