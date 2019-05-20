@@ -92,6 +92,7 @@ func getUserList() ([]string, error) {
 	api := slack.New(token)
 	channel, err := api.GetChannelInfo(channelId)
 	if err != nil {
+		log.Print("Error getting channel info")
 		return nil, err
 	}
 	members := channel.Members
