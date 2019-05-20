@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
@@ -33,8 +34,9 @@ type CurrentGOTD struct {
 
 type GifHistory struct {
 	gorm.Model
-	GIF  string         `json:"url"`
-	Tags pq.StringArray `gorm:"type:varchar(64)[]"`
+	GIF         string `json:"url"`
+	ElapsedTime float64
+	Tags        pq.StringArray `gorm:"type:varchar(64)[]"`
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
@@ -70,11 +72,32 @@ func (c *DBClient) Insert(gif *CurrentGOTD) error {
 }
 
 func (c *DBClient) Update(gif *CurrentGOTD) error {
-	if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
+	currentGif := new(CurrentGOTD)
+
+	// Get the current gif from db
+	if result := c.db.Model(&CurrentGOTD{}).First(currentGif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
 		return ErrDatabaseGeneral(result.Error.Error())
+	}
+	// Calculate the elapsed time
+	duration := time.Since(currentGif.CreatedAt).Minutes()
+
+	if duration >= 10 {
+		if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
+			if gorm.IsRecordNotFoundError(result.Error) {
+				return ErrRecordNotFound
+			}
+			prevGif := GifHistory{
+				GIF:         currentGif.GIF,
+				ElapsedTime: duration,
+			}
+			if result := c.db.Create(prevGif); result.Error != nil {
+				return ErrDatabaseGeneral(result.Error.Error())
+			}
+			return ErrDatabaseGeneral(result.Error.Error())
+		}
 	}
 	return nil
 }
