@@ -3,6 +3,7 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
@@ -87,6 +88,14 @@ func (c *DBClient) AddGifHistory(gif *GifHistory) error {
 	if result := c.db.Create(gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
+	mrGif := new(GifHistory)
+	if result := c.db.Model(&GifHistory{}).Last(mrGif); result.Error != nil {
+		if gorm.IsRecordNotFoundError(result.Error) {
+			return ErrRecordNotFound
+		}
+		return ErrDatabaseGeneral(result.Error.Error())
+	}
+	log.Printf("New History ID: %d", mrGif.ID)
 	return nil
 }
 
@@ -107,6 +116,7 @@ func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 			GIF:         current.GIF,
 			ElapsedTime: duration,
 		}
+		log.Print("Before adding previous gif")
 		err := c.AddGifHistory(&prevGif)
 		if err != nil {
 			return err
