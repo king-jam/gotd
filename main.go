@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
@@ -47,11 +46,17 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
+		u, err := url.Parse(s.Text)
+		if err != nil {
+			response := "Invalid URL provided"
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Write([]byte(response))
+			return
+		}
 		log.Printf("%s", s.ChannelName)
-		if validateURL(url) {
+		if validateURL(u) {
 			newGif := &postgres.GOTD{
-				GIF: url,
+				GIF: u.String(),
 			}
 			err := DB.UpdateGIF(newGif)
 			if err != nil {
@@ -80,24 +85,20 @@ func validUser(userId string) bool {
 	return false
 }
 
-func validateURL(url string) bool {
+func validateURL(url *url.URL) bool {
 	// Validate if string is from giphy
-	isValid := strings.Contains(url, "giphy.com")
-	return isValid
+	return url.Hostname() == "giphy.com"
 }
 
 func getUserList() ([]string, error) {
-	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
 	channelId := os.Getenv("CHANNEL_ID")
-	api := slack.New(token)
+	api := slack.New(os.Getenv("CLIENT_TOKEN"))
 	channel, err := api.GetChannelInfo(channelId)
 	if err != nil {
 		log.Print("Error getting channel info")
 		return nil, err
 	}
 	members := channel.Members
-	log.Print("Debugger #2")
-	log.Printf("Is it private %v", channel.IsPrivate)
 	log.Printf("Number of members in this channel: %d", channel.NumMembers)
 	return members, nil
 }
