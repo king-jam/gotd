@@ -3,3 +3,6 @@
 
 # ignore built binaries
 gotd
+
+# ignore debug helpers
+gif

@@ -7,6 +7,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
+	"github.com/lib/pq"
 )
 
 var (
@@ -25,9 +26,15 @@ type DBClient struct {
 	db *gorm.DB
 }
 
-type GOTD struct {
+type CurrentGOTD struct {
 	gorm.Model
 	GIF string `json:"url"`
+}
+
+type GifHistory struct {
+	gorm.Model
+	GIF  string         `json:"url"`
+	Tags pq.StringArray `gorm:"type:varchar(64)[]"`
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
@@ -42,8 +49,12 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	db.DB().SetMaxOpenConns(20)
 
-	if !db.HasTable(&GOTD{}) {
-		db.CreateTable(&GOTD{})
+	if !db.HasTable(&CurrentGOTD{}) {
+		db.CreateTable(&CurrentGOTD{})
+	}
+
+	if !db.HasTable(&GifHistory{}) {
+		db.CreateTable(&GifHistory{})
 	}
 
 	return &DBClient{
@@ -51,15 +62,15 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	}, nil
 }
 
-func (c *DBClient) Insert(gif *GOTD) error {
+func (c *DBClient) Insert(gif *CurrentGOTD) error {
 	if result := c.db.Create(gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
 }
 
-func (c *DBClient) Update(gif *GOTD) error {
-	if result := c.db.Model(&GOTD{}).Updates(gif); result.Error != nil {
+func (c *DBClient) Update(gif *CurrentGOTD) error {
+	if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
@@ -68,7 +79,7 @@ func (c *DBClient) Update(gif *GOTD) error {
 	return nil
 }
 
-func (c *DBClient) UpdateGIF(gif *GOTD) error {
+func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 	current, err := c.LatestGIF()
 	if err != nil {
 		if err == ErrRecordNotFound {
@@ -88,9 +99,9 @@ func (c *DBClient) UpdateGIF(gif *GOTD) error {
 	return nil
 }
 
-func (c *DBClient) LatestGIF() (*GOTD, error) {
-	gif := new(GOTD)
-	if result := c.db.Model(&GOTD{}).First(gif); result.Error != nil {
+func (c *DBClient) LatestGIF() (*CurrentGOTD, error) {
+	gif := new(CurrentGOTD)
+	if result := c.db.Model(&CurrentGOTD{}).First(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
