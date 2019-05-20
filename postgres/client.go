@@ -110,7 +110,7 @@ func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 		}
 		return err
 	}
-	duration := time.Since(current.CreatedAt)
+	duration := time.Since(current.UpdatedAt)
 	if duration > minimumHistoryThresholdMins {
 		prevGif := GifHistory{
 			GIF:         current.GIF,
