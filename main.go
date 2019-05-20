@@ -35,18 +35,19 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
+	members, err := getUserList()
+	log.Print("List of members \n")
+	log.Print(members)
 	switch s.Command {
 	case "/gotd":
 		userName := s.UserName
 		if !validUser(userName) {
-			response := "You are not a member of this channel"
+			response := "You don't have permission to change GOTD"
 			w.Write([]byte(response))
 			return
 		}
 
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
-		fmt.Printf("channel ID %s", fmt.Sprintf(s.ChannelID))
 		log.Printf("%s", s.ChannelName)
 		if validateURL(url) {
 			newGif := &postgres.GOTD{
@@ -85,7 +86,7 @@ func validateURL(url string) bool {
 	return isValid
 }
 
-func getUserList(channelID string) ([]string, error) {
+func getUserList() ([]string, error) {
 	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
 	channelId := os.Getenv("CHANNEL_ID")
 	api := slack.New(token)
