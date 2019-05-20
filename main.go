@@ -46,7 +46,7 @@ func slashCommandHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		url := fmt.Sprintf("%v", slack.Msg{Text: s.Text}.Text)
-
+		fmt.Printf("channel ID %s", fmt.Sprintf(s.ChannelID))
 		log.Printf("%s", s.ChannelName)
 		if validateURL(url) {
 			newGif := &postgres.GOTD{
@@ -85,24 +85,11 @@ func validateURL(url string) bool {
 	return isValid
 }
 
-// func getUserList() ([]string, error) {
-// 	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
-// 	api := slack.New(token)
-// 	users, err := api.GetUsers()
-// 	var usernames []string
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for i := range users {
-// 		usernames = append(usernames, users[i].Name)
-// 	}
-// 	return usernames, nil
-// }
-
 func getUserList(channelID string) ([]string, error) {
 	token := os.Getenv("SLACK_VERIFICATION_TOKEN")
+	channelId := os.Getenv("CHANNEL_ID")
 	api := slack.New(token)
-	channel, err := api.GetChannelInfo(channelID)
+	channel, err := api.GetChannelInfo(channelId)
 	if err != nil {
 		return nil, err
 	}
