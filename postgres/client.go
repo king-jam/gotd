@@ -12,7 +12,7 @@ import (
 	"github.com/lib/pq"
 )
 
-const minimumHistoryThresholdMins = 10
+const minimumHistoryThresholdMins = 10 * time.Minute
 
 var (
 	// ErrRecordNotFound record not found error, happens when haven't find any matched data when looking up with a struct
@@ -38,7 +38,7 @@ type CurrentGOTD struct {
 type GifHistory struct {
 	gorm.Model
 	GIF         string `json:"url"`
-	ElapsedTime float64
+	ElapsedTime time.Duration
 	Tags        pq.StringArray `gorm:"type:varchar(64)[]"`
 }
 
@@ -110,8 +110,8 @@ func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 		}
 		return err
 	}
-	duration := time.Since(current.CreatedAt).Minutes()
-	if duration >= minimumHistoryThresholdMins {
+	duration := time.Since(current.CreatedAt)
+	if duration > minimumHistoryThresholdMins {
 		prevGif := GifHistory{
 			GIF:         current.GIF,
 			ElapsedTime: duration,
