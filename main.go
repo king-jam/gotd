@@ -95,6 +95,8 @@ func getUserList() ([]string, error) {
 		return nil, err
 	}
 	members := channel.Members
+	log.Print("Debugger #2")
+	log.Printf("Is it private %v", channel.IsPrivate)
 	log.Printf("Number of members in this channel: %d", channel.NumMembers)
 	return members, nil
 }
