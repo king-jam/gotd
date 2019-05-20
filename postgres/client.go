@@ -3,6 +3,7 @@ package postgres
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
@@ -84,7 +85,8 @@ func (c *DBClient) Update(gif *CurrentGOTD) error {
 	// Calculate the elapsed time
 	duration := time.Since(currentGif.CreatedAt).Minutes()
 
-	if duration >= 10 {
+	if duration >= 1 {
+		log.Print("I'm here")
 		if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
 			if gorm.IsRecordNotFoundError(result.Error) {
 				return ErrRecordNotFound
