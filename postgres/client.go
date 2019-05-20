@@ -3,7 +3,6 @@ package postgres
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"time"
 
@@ -11,6 +10,8 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
 	"github.com/lib/pq"
 )
+
+const minimumHistoryThresholdMins = 10
 
 var (
 	// ErrRecordNotFound record not found error, happens when haven't find any matched data when looking up with a struct
@@ -73,33 +74,18 @@ func (c *DBClient) Insert(gif *CurrentGOTD) error {
 }
 
 func (c *DBClient) Update(gif *CurrentGOTD) error {
-	currentGif := new(CurrentGOTD)
-
-	// Get the current gif from db
-	if result := c.db.Model(&CurrentGOTD{}).First(currentGif); result.Error != nil {
+	if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
-	// Calculate the elapsed time
-	duration := time.Since(currentGif.CreatedAt).Minutes()
+	return nil
+}
 
-	if duration >= 1 {
-		log.Print("I'm here")
-		if result := c.db.Model(&CurrentGOTD{}).Updates(gif); result.Error != nil {
-			if gorm.IsRecordNotFoundError(result.Error) {
-				return ErrRecordNotFound
-			}
-			prevGif := GifHistory{
-				GIF:         currentGif.GIF,
-				ElapsedTime: duration,
-			}
-			if result := c.db.Create(prevGif); result.Error != nil {
-				return ErrDatabaseGeneral(result.Error.Error())
-			}
-			return ErrDatabaseGeneral(result.Error.Error())
-		}
+func (c *DBClient) AddGifHistory(gif *GifHistory) error {
+	if result := c.db.Create(gif); result.Error != nil {
+		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
 }
@@ -114,6 +100,17 @@ func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 			}
 		}
 		return err
+	}
+	duration := time.Since(current.CreatedAt).Minutes()
+	if duration >= minimumHistoryThresholdMins {
+		prevGif := GifHistory{
+			GIF:         current.GIF,
+			ElapsedTime: duration,
+		}
+		err := c.AddGifHistory(&prevGif)
+		if err != nil {
+			return err
+		}
 	}
 	// otherwise just update it
 	gif.ID = current.ID
