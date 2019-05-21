@@ -97,6 +97,7 @@ func (c *DBClient) AddGifHistory(gif *GifHistory) error {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	log.Printf("New History ID: %d", mrGif.ID)
+	log.Printf("Tags: +%v", mrGif.Tags)
 	return nil
 }
 
