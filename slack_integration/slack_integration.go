@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/king-jam/gotd/giphy"
 	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
 )
@@ -76,11 +77,17 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(err.Error()))
 			return
 		}
-
+		tags, err := giphy.GetGIFTags(u.String())
+		if err != nil {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		newGif := &postgres.GifHistory{
 			GIF:         u.String(),
 			RequestSrc:  "slack",
 			RequesterID: s.UserID,
+			Tags:        tags,
 		}
 		// Update deactivate time for previous gif
 		lastGif, err := h.db.LatestGIF()
