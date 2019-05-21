@@ -55,12 +55,12 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
+	userCmd := s.Command + " " + s.Text
 	switch s.Command {
 	case "/gotd":
 		userId := s.UserID
 		if !validateUser(userId) {
-			response := "You don't have permission to change GOTD"
+			response := userCmd + "\n" + "You don't have permission to change GOTD"
 			w.Write([]byte(response))
 			return
 		}
@@ -68,20 +68,20 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		u, err := url.Parse(s.Text)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 
 		err = normalizeGiphyURL(u)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 		tags, err := giphy.GetGIFTags(u.String())
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 		newGif := &postgres.GifHistory{
@@ -98,23 +98,23 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Print(err)
 					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(err.Error()))
+					w.Write([]byte(userCmd + "\n" + err.Error()))
 					return
 				}
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(SuccessMsg))
+				w.Write([]byte(userCmd + "\n" + SuccessMsg))
 				return
 			}
 			log.Print(err)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 		// if we are using the same exact GIF URL
 		if lastGif.GIF == newGif.GIF {
 			// just return success and change nothing
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(SuccessMsg))
+			w.Write([]byte(userCmd + "\n" + SuccessMsg))
 			return
 		}
 		lastGif.DeactivatedAt = time.Now()
@@ -123,7 +123,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("failed to update the last gif")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 
@@ -132,16 +132,16 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("failed to insert into db")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(err.Error()))
+			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(SuccessMsg))
+		w.Write([]byte(userCmd + "\n" + SuccessMsg))
 	default:
 		msg := fmt.Errorf("invalid command")
 		log.Print(msg)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(msg.Error()))
+		w.Write([]byte(userCmd + "\n" + msg.Error()))
 		return
 	}
 }
