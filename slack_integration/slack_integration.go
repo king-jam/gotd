@@ -106,6 +106,12 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// if we are using the same exact GIF URL
+		if lastGif.GIF == newGif.GIF {
+			// just return success and change nothing
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		lastGif.DeactivatedAt = time.Now()
 		fmt.Printf("\n\n%+v\n\n", lastGif)
 		err = h.db.Update(lastGif)
