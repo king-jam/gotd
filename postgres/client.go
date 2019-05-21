@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
+	"github.com/king-jam/gotd/giphy"
 	"github.com/lib/pq"
 )
 
@@ -112,12 +113,16 @@ func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
 	}
 	duration := time.Since(current.UpdatedAt)
 	if duration > minimumHistoryThresholdMins {
+		tags, err := giphy.GetGIFTags(current.GIF)
+		if err != nil {
+			log.Print(err)
+		}
 		prevGif := GifHistory{
 			GIF:         current.GIF,
 			ElapsedTime: duration,
+			Tags:        tags,
 		}
-		log.Print("Before adding previous gif")
-		err := c.AddGifHistory(&prevGif)
+		err = c.AddGifHistory(&prevGif)
 		if err != nil {
 			return err
 		}

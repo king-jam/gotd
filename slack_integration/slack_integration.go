@@ -101,16 +101,3 @@ func validateURL(url *url.URL) bool {
 	// Validate if string is from giphy
 	return url.Hostname() == "giphy.com"
 }
-
-// func getUserList() ([]string, error) {
-// 	channelId := os.Getenv("CHANNEL_ID")
-// 	api := slack.New(os.Getenv("CLIENT_TOKEN"))
-// 	channel, err := api.GetChannelInfo(channelId)
-// 	if err != nil {
-// 		log.Print("Error getting channel info")
-// 		return nil, err
-// 	}
-// 	members := channel.Members
-// 	log.Printf("Number of members in this channel: %d", channel.NumMembers)
-// 	return members, nil
-// }

@@ -11,6 +11,7 @@ require (
 	github.com/nlopes/slack v0.5.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 )
 
 replace mellium.im/sasl => github.com/mellium/sasl v0.2.1
