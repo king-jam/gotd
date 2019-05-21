@@ -67,20 +67,20 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		u, err := url.Parse(s.Text)
 		if err != nil {
-			w.WriteHeader(http.StatusPreconditionFailed)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
 		err = normalizeGiphyURL(u)
 		if err != nil {
-			w.WriteHeader(http.StatusPreconditionFailed)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
 		tags, err := giphy.GetGIFTags(u.String())
 		if err != nil {
-			w.WriteHeader(http.StatusPreconditionFailed)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
@@ -97,7 +97,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				err = h.db.Insert(newGif)
 				if err != nil {
 					log.Print(err)
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(http.StatusOK)
 					w.Write([]byte(err.Error()))
 					return
 				}
@@ -106,7 +106,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			log.Print(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
@@ -122,7 +122,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.db.Update(lastGif)
 		if err != nil {
 			log.Print("failed to update the last gif")
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
@@ -131,7 +131,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.db.Insert(newGif)
 		if err != nil {
 			log.Print("failed to insert into db")
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(err.Error()))
 			return
 		}
@@ -140,7 +140,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		msg := fmt.Errorf("invalid command")
 		log.Print(msg)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(msg.Error()))
 		return
 	}
