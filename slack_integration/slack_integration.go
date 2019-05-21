@@ -70,9 +70,24 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if validateURL(u) {
+			newGif := &postgres.GifHistory{
+				GIF:         u.String(),
+				RequestSrc:  "slack",
+				RequesterID: s.UserID,
+			}
 			// Update deactivate time for previous gif
 			lastGif, err := h.db.LatestGIF()
 			if err != nil {
+				if err == postgres.ErrRecordNotFound {
+					err = h.db.Insert(newGif)
+					if err != nil {
+						log.Print(err)
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+					return
+				}
 				log.Print(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
@@ -87,11 +102,6 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Insert new gif into db
-			newGif := &postgres.GifHistory{
-				GIF:         u.String(),
-				RequestSrc:  "slack",
-				RequesterID: s.UserID,
-			}
 			err = h.db.Insert(newGif)
 			if err != nil {
 				log.Print("failed to insert into db")

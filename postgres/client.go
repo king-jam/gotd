@@ -80,7 +80,6 @@ func (c *DBClient) Update(gif *GifHistory) error {
 }
 
 func (c *DBClient) Insert(gif *GifHistory) error {
-
 	if result := c.db.Create(gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
@@ -131,7 +130,7 @@ func (c *DBClient) Insert(gif *GifHistory) error {
 
 func (c *DBClient) LatestGIF() (*GifHistory, error) {
 	gif := new(GifHistory)
-	if result := c.db.Model(&GifHistory{}).First(gif); result.Error != nil {
+	if result := c.db.Model(&GifHistory{}).Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
