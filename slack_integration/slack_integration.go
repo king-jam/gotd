@@ -1,10 +1,13 @@
 package slack_integration
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
+	"time"
 
 	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
@@ -67,10 +70,29 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if validateURL(u) {
-			newGif := &postgres.CurrentGOTD{
-				GIF: u.String(),
+			// Update deactivate time for previous gif
+			lastGif, err := h.db.LatestGIF()
+			if err != nil {
+				log.Print(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
-			err := h.db.UpdateGIF(newGif)
+			lastGif.DeactivatedAt = time.Now()
+			fmt.Printf("\n\n%+v\n\n", lastGif)
+			err = h.db.Update(lastGif)
+			if err != nil {
+				log.Print("failed to update the last gif")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			// Insert new gif into db
+			newGif := &postgres.GifHistory{
+				GIF:         u.String(),
+				RequestSrc:  "slack",
+				RequesterID: s.UserID,
+			}
+			err = h.db.Insert(newGif)
 			if err != nil {
 				log.Print("failed to insert into db")
 				w.WriteHeader(http.StatusInternalServerError)
@@ -98,6 +120,16 @@ func validateUser(userId string) bool {
 }
 
 func validateURL(url *url.URL) bool {
+	// Check if URL has "/fullscreen"
+	basePath := path.Dir(url.Path)
+	if ok, err := path.Match(basePath, "fullscreen"); err == nil {
+		if !ok {
+			path.Join(basePath, "fullscreen")
+		}
+	} else {
+		return false
+	}
+	url.Path = basePath
 	// Validate if string is from giphy
 	return url.Hostname() == "giphy.com"
 }
