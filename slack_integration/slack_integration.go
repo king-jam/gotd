@@ -69,48 +69,50 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 			return
 		}
-		if validateURL(u) {
-			newGif := &postgres.GifHistory{
-				GIF:         u.String(),
-				RequestSrc:  "slack",
-				RequesterID: s.UserID,
-			}
-			// Update deactivate time for previous gif
-			lastGif, err := h.db.LatestGIF()
-			if err != nil {
-				if err == postgres.ErrRecordNotFound {
-					err = h.db.Insert(newGif)
-					if err != nil {
-						log.Print(err)
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-					w.WriteHeader(http.StatusOK)
+
+		err = normalizeGiphyURL(u)
+		if err != nil {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		newGif := &postgres.GifHistory{
+			GIF:         u.String(),
+			RequestSrc:  "slack",
+			RequesterID: s.UserID,
+		}
+		// Update deactivate time for previous gif
+		lastGif, err := h.db.LatestGIF()
+		if err != nil {
+			if err == postgres.ErrRecordNotFound {
+				err = h.db.Insert(newGif)
+				if err != nil {
+					log.Print(err)
+					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
-				log.Print(err)
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(http.StatusOK)
 				return
 			}
-			lastGif.DeactivatedAt = time.Now()
-			fmt.Printf("\n\n%+v\n\n", lastGif)
-			err = h.db.Update(lastGif)
-			if err != nil {
-				log.Print("failed to update the last gif")
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+			log.Print(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		lastGif.DeactivatedAt = time.Now()
+		fmt.Printf("\n\n%+v\n\n", lastGif)
+		err = h.db.Update(lastGif)
+		if err != nil {
+			log.Print("failed to update the last gif")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
-			// Insert new gif into db
-			err = h.db.Insert(newGif)
-			if err != nil {
-				log.Print("failed to insert into db")
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		} else {
-			response := "Please use giphy for your gif"
-			w.Write([]byte(response))
+		// Insert new gif into db
+		err = h.db.Insert(newGif)
+		if err != nil {
+			log.Print("failed to insert into db")
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	default:
@@ -130,16 +132,24 @@ func validateUser(userId string) bool {
 }
 
 func validateURL(url *url.URL) bool {
-	// Check if URL has "/fullscreen"
-	basePath := path.Dir(url.Path)
-	if ok, err := path.Match(basePath, "fullscreen"); err == nil {
-		if !ok {
-			path.Join(basePath, "fullscreen")
-		}
-	} else {
-		return false
-	}
-	url.Path = basePath
 	// Validate if string is from giphy
 	return url.Hostname() == "giphy.com"
+}
+
+func normalizeGiphyURL(url *url.URL) error {
+	if !validateURL(url) {
+		return fmt.Errorf("Invalid URL - Use Giphy.com")
+	}
+	var fullPath string
+	// Check if URL has "/fullscreen"
+	//basePath := path.Dir(url.Path)
+	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		fullPath = path.Join(url.Path, "fullscreen")
+		url.Path = fullPath
+	}
+	return nil
 }
