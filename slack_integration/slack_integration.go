@@ -55,7 +55,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	userCmd := s.Command + " " + s.Text
+	userCmd := "Requested GIF\n" + s.Text
 	switch s.Command {
 	case "/gotd":
 		userId := s.UserID
@@ -138,10 +138,6 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(userCmd + "\n" + SuccessMsg))
 	default:
-		msg := fmt.Errorf("invalid command")
-		log.Print(msg)
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(userCmd + "\n" + msg.Error()))
 		return
 	}
 }
