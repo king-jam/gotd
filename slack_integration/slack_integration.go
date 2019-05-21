@@ -14,6 +14,8 @@ import (
 	"github.com/nlopes/slack"
 )
 
+const SuccessMsg = "GIF Successfully posted to GOTD"
+
 var UserIdList = []string{
 	"U5SFY08HW", // Ethan
 	"U5SFZ590Q", // Val
@@ -65,9 +67,8 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		u, err := url.Parse(s.Text)
 		if err != nil {
-			response := "Invalid URL provided"
 			w.WriteHeader(http.StatusPreconditionFailed)
-			w.Write([]byte(response))
+			w.Write([]byte(err.Error()))
 			return
 		}
 
@@ -97,19 +98,23 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					log.Print(err)
 					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte(err.Error()))
 					return
 				}
 				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(SuccessMsg))
 				return
 			}
 			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		// if we are using the same exact GIF URL
 		if lastGif.GIF == newGif.GIF {
 			// just return success and change nothing
 			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(SuccessMsg))
 			return
 		}
 		lastGif.DeactivatedAt = time.Now()
@@ -118,6 +123,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("failed to update the last gif")
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 
@@ -126,11 +132,16 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print("failed to insert into db")
 			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(SuccessMsg))
 	default:
-		log.Print("invalid command")
+		msg := fmt.Errorf("invalid command")
+		log.Print(msg)
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(msg.Error()))
 		return
 	}
 }
