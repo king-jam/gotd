@@ -19,6 +19,7 @@ var UserIdList = []string{
 	"U5SFZ590Q", // Val
 }
 
+// validateUser will validate userID against the UserIdList
 func validateUser(userId string) bool {
 	for _, user := range UserIdList {
 		if userId == user {

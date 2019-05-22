@@ -3,13 +3,11 @@ package postgres
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
-	"github.com/lib/pq"
 )
 
 const minimumHistoryThresholdMins = 10 * time.Minute
@@ -27,21 +25,7 @@ func (edg ErrDatabaseGeneral) Error() string {
 }
 
 type DBClient struct {
-	db *gorm.DB
-}
-
-// type CurrentGOTD struct {
-// 	gorm.Model
-// 	GIF string `json:"url"`
-// }
-
-type GifHistory struct {
-	gorm.Model
-	DeactivatedAt time.Time
-	GIF           string `json:"url"`
-	RequesterID   string
-	RequestSrc    string
-	Tags          pq.StringArray `gorm:"type:varchar(64)[]"`
+	Db *gorm.DB
 }
 
 // InitDatabase takes a connection string URL to pass into the Database
@@ -56,90 +40,60 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	db.DB().SetMaxOpenConns(20)
 
-	// if !db.HasTable(&CurrentGOTD{}) {
-	// 	db.CreateTable(&CurrentGOTD{})
-	// }
-
-	if !db.HasTable(&GifHistory{}) {
-		db.CreateTable(&GifHistory{})
-	}
-
 	return &DBClient{
-		db: db,
+		Db: db,
 	}, nil
 }
 
-func (c *DBClient) Update(gif *GifHistory) error {
-	if result := c.db.Model(&GifHistory{}).Updates(gif); result.Error != nil {
-		if gorm.IsRecordNotFoundError(result.Error) {
-			return ErrRecordNotFound
-		}
-		return ErrDatabaseGeneral(result.Error.Error())
-	}
-	return nil
-}
-
-func (c *DBClient) Insert(gif *GifHistory) error {
-	if result := c.db.Create(gif); result.Error != nil {
-		return ErrDatabaseGeneral(result.Error.Error())
-	}
-
-	//Debugging
-	mrGif, _ := c.LatestGIF()
-	log.Printf("New History ID: %d", mrGif.ID)
-	log.Printf("Tags: +%v", mrGif.Tags)
-
-	return nil
-}
-
-// func (c *DBClient) UpdateGIF(gif *CurrentGOTD) error {
-// 	current, err := c.LatestGIF()
-// 	if err != nil {
-// 		if err == ErrRecordNotFound {
-// 			err = c.Insert(gif)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 		return err
+// func (c *DBClient) Insert(gif *GifHistory) error {
+// 	if result := c.db.Create(gif); result.Error != nil {
+// 		return ErrDatabaseGeneral(result.Error.Error())
 // 	}
-// 	duration := time.Since(current.UpdatedAt)
-// 	if duration > minimumHistoryThresholdMins {
-// 		tags, err := giphy.GetGIFTags(current.GIF)
-// 		if err != nil {
-// 			log.Print(err)
+
+// 	//Debugging
+// 	mrGif, _ := c.LatestGIF()
+// 	log.Printf("New History ID: %d", mrGif.ID)
+// 	log.Printf("Tags: +%v", mrGif.Tags)
+
+// 	return nil
+// }
+
+// // Update will update a gif from the database
+// func (c *DBClient) Update(gif *GifHistory) error {
+// 	if result := c.db.Model(&GifHistory{}).Updates(gif); result.Error != nil {
+// 		if gorm.IsRecordNotFoundError(result.Error) {
+// 			return ErrRecordNotFound
 // 		}
-// 		prevGif := GifHistory{
-// 			GIF:         current.GIF,
-// 			ElapsedTime: duration,
-// 			Tags:        tags,
-// 		}
-// 		err = c.AddGifHistory(&prevGif)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// 	// otherwise just update it
-// 	gif.ID = current.ID
-// 	err = c.Update(gif)
-// 	if err != nil {
-// 		return err
+// 		return ErrDatabaseGeneral(result.Error.Error())
 // 	}
 // 	return nil
 // }
 
-func (c *DBClient) LatestGIF() (*GifHistory, error) {
-	gif := new(GifHistory)
-	if result := c.db.Model(&GifHistory{}).Last(gif); result.Error != nil {
-		if gorm.IsRecordNotFoundError(result.Error) {
-			return nil, ErrRecordNotFound
-		}
-		return nil, ErrDatabaseGeneral(result.Error.Error())
-	}
-	return gif, nil
-}
+// func (c *DBClient) FindGIFByID(id uint) (*GifHistory, error) {
+// 	return &GifHistory{}, nil
+// }
+
+// func (c *DBClient) FindAllGifs() ([]GifHistory, error) {
+// 	return []GifHistory{}, nil
+// }
+
+// // LatestGIF will return the latest gif from database
+// func (c *DBClient) LatestGIF() (*GifHistory, error) {
+// 	gif := new(GifHistory)
+// 	if result := c.db.Model(&GifHistory{}).Last(gif); result.Error != nil {
+// 		if gorm.IsRecordNotFoundError(result.Error) {
+// 			return nil, ErrRecordNotFound
+// 		}
+// 		return nil, ErrDatabaseGeneral(result.Error.Error())
+// 	}
+// 	return gif, nil
+// }
+
+// func (c *DBClient) DeleteGIFByID(id int) error {
+// 	return nil
+// }
 
 // Close wraps the db close function for easy cleanup
 func (c *DBClient) Close() {
-	c.db.Close()
+	c.Db.Close()
 }
