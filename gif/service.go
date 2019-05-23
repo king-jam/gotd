@@ -40,6 +40,8 @@ func BuildGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
+
+	// Normalize the URL
 	err = normalizeGiphyURL(url)
 	if err != nil {
 		return err
@@ -48,6 +50,7 @@ func BuildGif(gif *GIF) error {
 
 	gif.Tags = tags
 	return nil
+
 }
 
 func (g *GifService) StoreGif(gif *GIF) error {
@@ -68,6 +71,11 @@ func (g *GifService) StoreGif(gif *GIF) error {
 			return err
 		}
 		return err
+	}
+
+	// If user post the same URL twice, do nothing and return
+	if gif.GIF == lastGif.GIF {
+		return nil
 	}
 
 	//Else, update the deactivate time for previous gif
