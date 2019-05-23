@@ -1,6 +1,7 @@
 package gif
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type GIF struct {
 	RequestSrc    string
 	Tags          []string
 }
+
 type GifService struct {
 	repo Repo
 }
@@ -24,7 +26,30 @@ func NewGifService(repo Repo) *GifService {
 }
 
 func (g *GifService) StoreGif(gif *GIF) error {
-	err := g.repo.Insert(gif)
+	//Update deactive time for previous gif before storing new gif
+	lastGif, err := g.GetMostRecent()
+	if err != nil {
+		// If there is no previous gif, then store new gif
+		if err == ErrRecordNotFound {
+			err = g.StoreGif(gif)
+			if err != nil {
+				return err
+			}
+			return err
+		}
+		return err
+	}
+
+	//Else, update the deactivate time for previous gif
+
+	lastGif.DeactivatedAt = time.Now()
+	fmt.Printf("\n\n%+v\n\n", lastGif)
+	err = g.UpdateGif(&lastGif)
+	if err != nil {
+		return err
+	}
+
+	err = g.repo.Insert(gif)
 	if err != nil {
 		return err
 	}

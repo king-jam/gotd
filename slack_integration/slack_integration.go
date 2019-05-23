@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"time"
 
 	"github.com/king-jam/gotd/gif"
 	"github.com/king-jam/gotd/giphy"
@@ -77,51 +76,14 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Tags:        tags,
 		}
 
-		// Update deactivate time for previous gif
-		lastGif, err := h.service.GetMostRecent()
+		err = h.service.StoreGif(newGif)
 		if err != nil {
-			if err == gif.ErrRecordNotFound {
-				err = h.service.StoreGif(newGif)
-				if err != nil {
-					log.Print(err)
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(userCmd + "\n" + err.Error()))
-					return
-				}
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(userCmd + "\n" + SuccessMsg))
-				return
-			}
 			log.Print(err)
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
-		// if we are using the same exact GIF URL
-		if lastGif.GIF == newGif.GIF {
-			// just return success and change nothing
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + SuccessMsg))
-			return
-		}
-		lastGif.DeactivatedAt = time.Now()
-		fmt.Printf("\n\n%+v\n\n", lastGif)
-		err = h.service.UpdateGif(&lastGif)
-		if err != nil {
-			log.Print("failed to update the last gif")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
-			return
-		}
 
-		// Insert new gif into db
-		err = h.service.StoreGif(newGif)
-		if err != nil {
-			log.Print("failed to insert into db")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
-			return
-		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(userCmd + "\n" + SuccessMsg))
 	default:
