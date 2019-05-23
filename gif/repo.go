@@ -107,7 +107,6 @@ func (r *Repo) LatestGIF() (*dbGIF, error) {
 }
 
 func TransformGif(gif *GIF) dbGIF {
-	log.Printf("\n\n%+v", gif.Tags)
 	dbGif := dbGIF{
 		GIF:           gif.GIF,
 		RequestSrc:    gif.RequestSrc,
@@ -115,7 +114,6 @@ func TransformGif(gif *GIF) dbGIF {
 		Tags:          pq.StringArray(gif.Tags),
 		DeactivatedAt: gif.DeactivatedAt,
 	}
-	log.Printf("\n\n%+v", dbGif.Tags)
 	return dbGif
 }
 

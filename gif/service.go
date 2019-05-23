@@ -2,7 +2,6 @@ package gif
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"path"
 	"time"
@@ -41,7 +40,6 @@ func BuildGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Tags from service: %+v", tags)
 	err = normalizeGiphyURL(url)
 	if err != nil {
 		return err
@@ -78,7 +76,6 @@ func (g *GifService) StoreGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("\n\n\n%+v", lastGif)
 	// Insert gif into db
 	err = g.repo.Insert(gif)
 	if err != nil {
