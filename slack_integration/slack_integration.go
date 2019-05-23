@@ -45,26 +45,6 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Grab the Gif URL from command
-		// u, err := url.Parse(s.Text)
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusOK)
-		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
-		// 	return
-		// }
-
-		// err = normalizeGiphyURL(u)
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusOK)
-		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
-		// 	return
-		// }
-		// tags, err := giphy.GetGIFTags(u.String())
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusOK)
-		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
-		// 	return
-		// }
 		newGif := &gif.GIF{
 			GIF:         s.Text,
 			RequestSrc:  "slack",
