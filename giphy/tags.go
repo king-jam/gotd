@@ -69,7 +69,13 @@ func isKeywordsToken(t html.Token) (ok bool) {
 
 // Remove "GIF" and "Animated GIF" tags that come with when scraping
 func removeUnusedTags(tags []string) []string {
-	reducedTags := make([]string, 0, len(tags)-2)
+	var reducedTagsLen int
+	if len(tags) < 3 {
+		reducedTagsLen = len(tags)
+	} else {
+		reducedTagsLen = len(tags) - 2
+	}
+	reducedTags := make([]string, 0, reducedTagsLen)
 	for _, t := range tags {
 		if t != "GIF" && t != "Animated GIF" {
 			reducedTags = append(reducedTags, t)
