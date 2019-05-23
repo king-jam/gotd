@@ -60,7 +60,7 @@ func (r *Repo) InitDB(db *gorm.DB) error {
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
 	gotd := TransformGif(gif)
-	if result := r.Db.Create(gotd); result.Error != nil {
+	if result := r.Db.Create(&gotd); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	//Debugging
