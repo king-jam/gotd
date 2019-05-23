@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/html"
 )
 
+// Scrape for tags from given URL string
 func GetGIFTags(gif string) ([]string, error) {
 	tags := make([]string, 0, 0)
 	var ok bool
@@ -55,25 +56,18 @@ func GetGIFTags(gif string) ([]string, error) {
 	}
 }
 
-func extractTag(url string) string {
-	s := strings.Split(url, "/")
-	return s[len(s)-1]
-}
-
 func isKeywordsToken(t html.Token) (ok bool) {
-	// Iterate over all of the Token's attributes until we find an "href"
+	// Iterate over all of the Token's attributes and check for "name" = "keywords"
 	for _, a := range t.Attr {
 		isTagAnchor := a.Key == "name" && a.Val == "keywords"
 		if isTagAnchor {
 			ok = true
 		}
 	}
-
-	// "bare" return will return the variables (ok, href) as defined in
-	// the function definition
 	return
 }
 
+// Remove "GIF" and "Animated GIF" tags that come with when scraping
 func removeUnusedTags(tags []string) []string {
 	reducedTags := make([]string, 0, len(tags)-2)
 	for _, t := range tags {
@@ -84,8 +78,9 @@ func removeUnusedTags(tags []string) []string {
 	return reducedTags
 }
 
+// getTags will get the gif's tags from token attribute
 func getTags(t html.Token) (ok bool, tags []string) {
-	// Iterate over all of the Token's attributes until we find an "href"
+	// Iterate over all of the Token's attributes until we find an "content"
 	for _, a := range t.Attr {
 		if a.Key == "content" {
 			tag := a.Val
@@ -93,12 +88,10 @@ func getTags(t html.Token) (ok bool, tags []string) {
 			ok = true
 		}
 	}
-
-	// "bare" return will return the variables (ok, href) as defined in
-	// the function definition
 	return
 }
 
+// trimFullScreenFromURL will remove "/fullscreen" from URL
 func trimFullScreenFromURL(url *url.URL) {
 	basePath := path.Dir(url.Path)
 	url.Path = basePath

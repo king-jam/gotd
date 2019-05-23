@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/king-jam/gotd/gif"
 	"github.com/king-jam/gotd/giphy"
 	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
@@ -16,40 +17,24 @@ import (
 
 const SuccessMsg = "GIF Successfully posted to GOTD"
 
-var UserIdList = []string{
-	"U5SFY08HW", // Ethan
-	"U5SFZ590Q", // Val
-	"UGG0Y2W82", //Aman
-	"U5UAGKX4L", //Amy
-	"U5U133V3Q", //Geoff
-	"U5U0X61DM", // Joe
-	"U5U1DSEQ7", // Justin
-	"U61HFJ7V2", // Kranti
-	"UFJRQ2S2F", // Minh
-	"UFDAJLGJU", // Viet
-	"U5V5T2DPZ", // Dale
-	"UGYDW6UJK", // Edgardo
-	"U5T9HLMAN", // James King
-	"UEK11RZJP", // Sammie
-	"UHH0LLBND", // Sandesh
-	"U5SFZ590Q", // Val
-}
-
-func New(db *postgres.DBClient) http.Handler {
-	return slashCommandHandler{db: db}
+func New(service *gif.GifService) http.Handler {
+	return slashCommandHandler{service: service}
 }
 
 type slashCommandHandler struct {
-	db *postgres.DBClient
+	service *gif.GifService
 }
 
+// Slack command handler
 func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Parse the command
 	s, err := slack.SlashCommandParse(r)
 	if err != nil {
 		log.Print("failed to parse command")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	// Validate if command is from slack
 	if !s.ValidateToken(os.Getenv("SLACK_VERIFICATION_TOKEN")) {
 		log.Print("unable to validate Slack Token")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -58,6 +43,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userCmd := "Requested GIF\n" + s.Text
 	switch s.Command {
 	case "/gotd":
+		// Validate user against the user pool
 		userId := s.UserID
 		if !validateUser(userId) {
 			response := userCmd + "\n" + "You don't have permission to change GOTD"
@@ -65,6 +51,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Grab the Gif URL from command
 		u, err := url.Parse(s.Text)
 		if err != nil {
 			w.WriteHeader(http.StatusOK)
@@ -84,17 +71,18 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(userCmd + "\n" + err.Error()))
 			return
 		}
-		newGif := &postgres.GifHistory{
+		newGif := &gif.GIF{
 			GIF:         u.String(),
 			RequestSrc:  "slack",
 			RequesterID: s.UserID,
 			Tags:        tags,
 		}
+
 		// Update deactivate time for previous gif
-		lastGif, err := h.db.LatestGIF()
+		lastGif, err := h.service.GetMostRecent()
 		if err != nil {
 			if err == postgres.ErrRecordNotFound {
-				err = h.db.Insert(newGif)
+				err = h.service.StoreGif(newGif)
 				if err != nil {
 					log.Print(err)
 					w.WriteHeader(http.StatusOK)
@@ -119,7 +107,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		lastGif.DeactivatedAt = time.Now()
 		fmt.Printf("\n\n%+v\n\n", lastGif)
-		err = h.db.Update(lastGif)
+		err = h.service.UpdateGif(&lastGif)
 		if err != nil {
 			log.Print("failed to update the last gif")
 			w.WriteHeader(http.StatusOK)
@@ -128,7 +116,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Insert new gif into db
-		err = h.db.Insert(newGif)
+		err = h.service.StoreGif(newGif)
 		if err != nil {
 			log.Print("failed to insert into db")
 			w.WriteHeader(http.StatusOK)
@@ -142,27 +130,19 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validateUser(userId string) bool {
-	for _, user := range UserIdList {
-		if userId == user {
-			return true
-		}
-	}
-	return false
-}
-
+// validateURL will validate if URL is from giphy.com
 func validateURL(url *url.URL) bool {
 	// Validate if string is from giphy
 	return url.Hostname() == "giphy.com"
 }
 
+// normalizeGiphyURL will add /fullscreen to URL
 func normalizeGiphyURL(url *url.URL) error {
 	if !validateURL(url) {
 		return fmt.Errorf("Invalid URL - Use Giphy.com")
 	}
 	var fullPath string
 	// Check if URL has "/fullscreen"
-	//basePath := path.Dir(url.Path)
 	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
 	if err != nil {
 		return err

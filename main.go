@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/king-jam/gotd/dashboard"
+	"github.com/king-jam/gotd/gif"
 	"github.com/king-jam/gotd/postgres"
 	"github.com/king-jam/gotd/slack_integration"
 )
@@ -40,11 +41,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to initialize the Database: %s", err)
 	}
+	repo, err := gif.NewGIFRepo(db.Db)
+	if err != nil {
+		log.Fatalf("Unable to initialize the Repository: %s", err)
+	}
+	err = repo.InitDB(db.Db)
+	if err != nil {
+		log.Fatalf("Unable to initialize the Schemas: %s", err)
+	}
 	defer db.Close()
 
-	siHandler := slack_integration.New(db)
+	service := gif.NewGifService(*repo)
 
-	dashboardHandler := dashboard.New(db)
+	siHandler := slack_integration.New(service)
+	dashboardHandler := dashboard.New(service)
 
 	appMux := http.NewServeMux()
 	appMux.Handle("/receive", siHandler)
