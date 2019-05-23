@@ -11,7 +11,6 @@ import (
 
 	"github.com/king-jam/gotd/gif"
 	"github.com/king-jam/gotd/giphy"
-	"github.com/king-jam/gotd/postgres"
 	"github.com/nlopes/slack"
 )
 
@@ -81,7 +80,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Update deactivate time for previous gif
 		lastGif, err := h.service.GetMostRecent()
 		if err != nil {
-			if err == postgres.ErrRecordNotFound {
+			if err == gif.ErrRecordNotFound {
 				err = h.service.StoreGif(newGif)
 				if err != nil {
 					log.Print(err)
