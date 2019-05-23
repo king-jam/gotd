@@ -36,16 +36,17 @@ func BuildGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
-	err = normalizeGiphyURL(url)
-	if err != nil {
-		return err
-	}
-	gif.GIF = url.String()
 	//Get Tags From Gif URL
 	tags, err := giphy.GetGIFTags(gif.GIF)
 	if err != nil {
 		return err
 	}
+	err = normalizeGiphyURL(url)
+	if err != nil {
+		return err
+	}
+	gif.GIF = url.String()
+
 	gif.Tags = tags
 	return nil
 }
