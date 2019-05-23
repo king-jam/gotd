@@ -112,7 +112,7 @@ func TransformGif(gif *GIF) dbGIF {
 		GIF:           gif.GIF,
 		RequestSrc:    gif.RequestSrc,
 		RequesterID:   gif.RequesterID,
-		Tags:          gif.Tags,
+		Tags:          pq.StringArray(gif.Tags),
 		DeactivatedAt: gif.DeactivatedAt,
 	}
 	return dbGif
