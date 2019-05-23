@@ -3,6 +3,7 @@ package gif
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -63,12 +64,10 @@ func (r *Repo) Insert(gif *GIF) error {
 	if result := r.Db.Create(&gotd); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
-
-	// fmt.Printf("\n\n%+v\n\n", lastGif)
-	//Debugging
-	// mrGif, _ := r.LatestGIF()
-	// log.Printf("New History ID: %d", mrGif.ID)
-	// log.Printf("Tags: +%v", mrGif.Tags)
+	// Debugging
+	mrGif, _ := r.LatestGIF()
+	log.Printf("New History ID: %d", mrGif.ID)
+	log.Printf("Tags: +%v", mrGif.Tags)
 
 	return nil
 }
