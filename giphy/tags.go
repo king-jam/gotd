@@ -33,10 +33,7 @@ func GetGIFTags(gif string) ([]string, error) {
 		switch tt {
 		case html.ErrorToken:
 			// End of the document, we're done
-			fmt.Printf("\n\n\ntags from get tags pt1: %+v", tags)
 			cleanedTags := removeUnusedTags(tags)
-
-			fmt.Printf("\n\n\ntags from get tags pt2: %+v", tags)
 			return cleanedTags, nil
 		case html.StartTagToken:
 			t := z.Token()
@@ -45,7 +42,6 @@ func GetGIFTags(gif string) ([]string, error) {
 			if !isAnchor {
 				continue
 			}
-
 			// Determine if this is the keywords meta data
 			if !isKeywordsToken(t) {
 				continue
@@ -101,8 +97,14 @@ func getTags(t html.Token) (ok bool, tags []string) {
 }
 
 // trimFullScreenFromURL will remove "/fullscreen" from URL
-func trimFullScreenFromURL(url *url.URL) {
-	basePath := path.Dir(url.Path)
-	url.Path = basePath
-	return
+func trimFullScreenFromURL(url *url.URL) error {
+	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
+	if err != nil {
+		return err
+	}
+	if ok {
+		basePath := path.Dir(url.Path)
+		url.Path = basePath
+	}
+	return nil
 }
