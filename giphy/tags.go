@@ -88,8 +88,6 @@ func removeUnusedTags(tags []string) []string {
 
 // getTags will get the gif's tags from token attribute
 func getTags(t html.Token) (ok bool, tags []string) {
-
-	log.Printf("2. len(tags): %d", len(tags))
 	// Iterate over all of the Token's attributes until we find an "content"
 	for _, a := range t.Attr {
 		if a.Key == "content" {
@@ -98,6 +96,7 @@ func getTags(t html.Token) (ok bool, tags []string) {
 			ok = true
 		}
 	}
+	log.Printf("2. len(tags): %d", len(tags))
 	return
 }
 

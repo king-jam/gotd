@@ -41,6 +41,7 @@ func BuildGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Tags from service: %+v", tags)
 	err = normalizeGiphyURL(url)
 	if err != nil {
 		return err
