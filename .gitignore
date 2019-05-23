@@ -4,5 +4,5 @@
 # ignore built binaries
 gotd
 
-# ignore debug helpers
-gif
+# # ignore debug helpers
+# gif
