@@ -2,7 +2,12 @@ package gif
 
 import (
 	"fmt"
+	"log"
+	"net/url"
+	"path"
 	"time"
+
+	"github.com/king-jam/gotd/giphy"
 )
 
 type GIF struct {
@@ -25,7 +30,32 @@ func NewGifService(repo Repo) *GifService {
 	return &GifService{repo: repo}
 }
 
+func BuildGif(gif *GIF) error {
+	// Reformat the URL
+	url, err := url.Parse(gif.GIF)
+	if err != nil {
+		return err
+	}
+	err = normalizeGiphyURL(url)
+	if err != nil {
+		return err
+	}
+	gif.GIF = url.String()
+	//Get Tags From Gif URL
+	tags, err := giphy.GetGIFTags(gif.GIF)
+	if err != nil {
+		return err
+	}
+	gif.Tags = tags
+	return nil
+}
+
 func (g *GifService) StoreGif(gif *GIF) error {
+	// Add more details onto the gif, such as tags, and reformat the URL
+	err := BuildGif(gif)
+	if err != nil {
+		return err
+	}
 	//Update deactive time for previous gif before storing new gif
 	lastGif, err := g.GetMostRecent()
 	if err != nil {
@@ -41,14 +71,13 @@ func (g *GifService) StoreGif(gif *GIF) error {
 	}
 
 	//Else, update the deactivate time for previous gif
-
 	lastGif.DeactivatedAt = time.Now()
-	fmt.Printf("\n\n%+v\n\n", lastGif)
 	err = g.UpdateGif(&lastGif)
 	if err != nil {
 		return err
 	}
-
+	log.Printf("\n\n\n%+v", lastGif)
+	// Insert gif into db
 	err = g.repo.Insert(gif)
 	if err != nil {
 		return err
@@ -57,7 +86,6 @@ func (g *GifService) StoreGif(gif *GIF) error {
 }
 
 func (g *GifService) UpdateGif(gif *GIF) error {
-
 	err := g.repo.Update(gif)
 	if err != nil {
 		return err
@@ -117,4 +145,28 @@ func (g *GifService) GetMostRecent() (GIF, error) {
 		RequestSrc:  dbGif.RequestSrc,
 	}
 	return gif, nil
+}
+
+// validateURL will validate if URL is from giphy.com
+func validateURL(url *url.URL) bool {
+	// Validate if string is from giphy
+	return url.Hostname() == "giphy.com"
+}
+
+// normalizeGiphyURL will add /fullscreen to URL
+func normalizeGiphyURL(url *url.URL) error {
+	if !validateURL(url) {
+		return fmt.Errorf("Invalid URL - Use Giphy.com")
+	}
+	var fullPath string
+	// Check if URL has "/fullscreen"
+	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		fullPath = path.Join(url.Path, "fullscreen")
+		url.Path = fullPath
+	}
+	return nil
 }

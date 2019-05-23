@@ -1,15 +1,11 @@
 package slack_integration
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"path"
 
 	"github.com/king-jam/gotd/gif"
-	"github.com/king-jam/gotd/giphy"
 	"github.com/nlopes/slack"
 )
 
@@ -50,30 +46,29 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Grab the Gif URL from command
-		u, err := url.Parse(s.Text)
-		if err != nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
-			return
-		}
+		// u, err := url.Parse(s.Text)
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusOK)
+		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
+		// 	return
+		// }
 
-		err = normalizeGiphyURL(u)
-		if err != nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
-			return
-		}
-		tags, err := giphy.GetGIFTags(u.String())
-		if err != nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
-			return
-		}
+		// err = normalizeGiphyURL(u)
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusOK)
+		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
+		// 	return
+		// }
+		// tags, err := giphy.GetGIFTags(u.String())
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusOK)
+		// 	w.Write([]byte(userCmd + "\n" + err.Error()))
+		// 	return
+		// }
 		newGif := &gif.GIF{
-			GIF:         u.String(),
+			GIF:         s.Text,
 			RequestSrc:  "slack",
 			RequesterID: s.UserID,
-			Tags:        tags,
 		}
 
 		err = h.service.StoreGif(newGif)
@@ -89,28 +84,4 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		return
 	}
-}
-
-// validateURL will validate if URL is from giphy.com
-func validateURL(url *url.URL) bool {
-	// Validate if string is from giphy
-	return url.Hostname() == "giphy.com"
-}
-
-// normalizeGiphyURL will add /fullscreen to URL
-func normalizeGiphyURL(url *url.URL) error {
-	if !validateURL(url) {
-		return fmt.Errorf("Invalid URL - Use Giphy.com")
-	}
-	var fullPath string
-	// Check if URL has "/fullscreen"
-	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		fullPath = path.Join(url.Path, "fullscreen")
-		url.Path = fullPath
-	}
-	return nil
 }
