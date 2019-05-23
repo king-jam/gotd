@@ -10,11 +10,10 @@ type GIF struct {
 	UpdatedAt     time.Time
 	DeletedAt     *time.Time
 	DeactivatedAt time.Time
-	GIF           string
+	GIF           string `json:"url"`
 	RequesterID   string
 	RequestSrc    string
 	Tags          []string
-	db            DB
 }
 type GifService struct {
 	repo Repo
