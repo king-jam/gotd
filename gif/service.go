@@ -144,6 +144,7 @@ func (g *GifService) GetMostRecent() (GIF, error) {
 		GIF:         dbGif.GIF,
 		RequesterID: dbGif.RequesterID,
 		RequestSrc:  dbGif.RequestSrc,
+		Tags:        []string(dbGif.Tags),
 	}
 	return gif, nil
 }

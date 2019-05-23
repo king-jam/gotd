@@ -2,6 +2,7 @@ package giphy
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -70,6 +71,7 @@ func isKeywordsToken(t html.Token) (ok bool) {
 // Remove "GIF" and "Animated GIF" tags that come with when scraping
 func removeUnusedTags(tags []string) []string {
 	var reducedTagsLen int
+	log.Printf("len(tags): %d", len(tags))
 	if len(tags) < 3 {
 		reducedTagsLen = len(tags)
 	} else {
