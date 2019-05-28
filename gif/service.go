@@ -70,6 +70,7 @@ func BuildGif(gif *GIF) error {
 		gif.GIF = url.String()
 		gif.Tags = tags
 	} else {
+		gif.Tags = strings.Split(gif.GIF, " ")
 		res, err := api.GetSearch(gif.GIF, 1, -1, "pg", "", false)
 		if err != nil {
 			return err
@@ -84,7 +85,6 @@ func BuildGif(gif *GIF) error {
 			return err
 		}
 		gif.GIF = url.String()
-		gif.Tags = strings.Split(gif.GIF, " ")
 		fmt.Printf("\n\n%+v", gif)
 	}
 

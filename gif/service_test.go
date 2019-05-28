@@ -7,7 +7,7 @@ import (
 
 func TestTags(t *testing.T) {
 	gif := GIF{
-		GIF: "monday morning",
+		GIF: "lord of the ring",
 	}
 	err := BuildGif(&gif)
 	if err != nil {
