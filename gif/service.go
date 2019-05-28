@@ -34,7 +34,6 @@ func NewGifService(repo Repo, api *libgiphy.Giphy) *GifService {
 }
 
 func (g *GifService) BuildGifFromUrl(gif *GIF) error {
-
 	// Reformat the URL
 	url, err := url.Parse(gif.GIF)
 	if err != nil {

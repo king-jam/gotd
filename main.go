@@ -54,7 +54,8 @@ func main() {
 	}
 	defer db.Close()
 
-	api := libgiphy.NewGiphy("B4LxlW1Av7CPwzIJL7VAIOQE4Lc4wSKm")
+	api_key := os.Getenv("GIPHY_API_KEY")
+	api := libgiphy.NewGiphy(api_key)
 
 	service := gif.NewGifService(*repo, api)
 
