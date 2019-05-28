@@ -75,6 +75,15 @@ func BuildGif(gif *GIF) error {
 			return err
 		}
 		gif.GIF = res.Data[0].Url
+		url, err := url.Parse(gif.GIF)
+		if err != nil {
+			return err
+		}
+		err = normalizeGiphyURL(url)
+		if err != nil {
+			return err
+		}
+		gif.GIF = url.String()
 		gif.Tags = strings.Split(gif.GIF, " ")
 		fmt.Printf("\n\n%+v", gif)
 	}
