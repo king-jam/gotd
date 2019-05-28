@@ -9,7 +9,6 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/king-jam/gotd/giphy"
-	libgiphy "github.com/sanzaru/go-giphy"
 )
 
 type GIF struct {
@@ -26,11 +25,11 @@ type GIF struct {
 
 type GifService struct {
 	repo  Repo
-	giphy *libgiphy.Giphy
+	giphy giphy.Giphy
 }
 
-func NewGifService(repo Repo, api *libgiphy.Giphy) *GifService {
-	return &GifService{repo: repo, giphy: api}
+func NewGifService(repo Repo, giphy giphy.Giphy) *GifService {
+	return &GifService{repo: repo, giphy: giphy}
 }
 
 func (g *GifService) BuildGifFromUrl(gif *GIF) error {
@@ -58,12 +57,11 @@ func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 
 func (g *GifService) BuildGifFromTags(gif *GIF) error {
 	gif.Tags = strings.Split(gif.GIF, " ")
-	res, err := g.giphy.GetSearch(gif.GIF, 1, -1, "pg", "", false)
+	res, err := g.giphy.SearchGifByTags(gif.GIF)
 	if err != nil {
 		return err
 	}
-	gif.GIF = res.Data[0].Url
-	url, err := url.Parse(gif.GIF)
+	url, err := url.Parse(res)
 	if err != nil {
 		return err
 	}
@@ -90,10 +88,6 @@ func (g *GifService) StoreGif(gif *GIF) error {
 		}
 	}
 	fmt.Print(gif)
-	// err := g.BuildGif(gif)
-	// if err != nil {
-	// 	return err
-	// }
 	//Update deactive time for previous gif before storing new gif
 	lastGif, err := g.GetMostRecent()
 	if err != nil {

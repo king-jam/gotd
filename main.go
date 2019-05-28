@@ -13,6 +13,7 @@ import (
 
 	"github.com/king-jam/gotd/dashboard"
 	"github.com/king-jam/gotd/gif"
+	"github.com/king-jam/gotd/giphy"
 	"github.com/king-jam/gotd/postgres"
 	"github.com/king-jam/gotd/slack_integration"
 
@@ -57,7 +58,11 @@ func main() {
 	api_key := os.Getenv("GIPHY_API_KEY")
 	api := libgiphy.NewGiphy(api_key)
 
-	service := gif.NewGifService(*repo, api)
+	giphy, err := giphy.NewGiphy(api)
+	if err != nil {
+		log.Fatalf("Failed to get giphy service api: %s", err)
+	}
+	service := gif.NewGifService(*repo, *giphy)
 
 	siHandler := slack_integration.New(service)
 	dashboardHandler := dashboard.New(service)
