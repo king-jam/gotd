@@ -15,6 +15,8 @@ import (
 	"github.com/king-jam/gotd/gif"
 	"github.com/king-jam/gotd/postgres"
 	"github.com/king-jam/gotd/slack_integration"
+
+	libgiphy "github.com/sanzaru/go-giphy"
 )
 
 func main() {
@@ -52,7 +54,9 @@ func main() {
 	}
 	defer db.Close()
 
-	service := gif.NewGifService(*repo)
+	api := libgiphy.NewGiphy("B4LxlW1Av7CPwzIJL7VAIOQE4Lc4wSKm")
+
+	service := gif.NewGifService(*repo, api)
 
 	siHandler := slack_integration.New(service)
 	dashboardHandler := dashboard.New(service)

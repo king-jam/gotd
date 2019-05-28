@@ -25,27 +25,17 @@ type GIF struct {
 }
 
 type GifService struct {
-	repo Repo
+	repo  Repo
+	giphy *libgiphy.Giphy
 }
 
-func NewGifService(repo Repo) *GifService {
-	return &GifService{repo: repo}
+func NewGifService(repo Repo, api *libgiphy.Giphy) *GifService {
+	return &GifService{repo: repo, giphy: api}
 }
 
-// type Giphy struct {
-// 	giphy *libgiphy.Giphy
-// }
-
-// func NewGiphy(api *libgiphy.Giphy) *Giphy {
-// 	return &Giphy{giphy: api}
-// }
-
-func BuildGif(gif *GIF) error {
+func (g *GifService) BuildGif(gif *GIF) error {
 	var url *url.URL
 	var err error
-
-	api := libgiphy.NewGiphy("B4LxlW1Av7CPwzIJL7VAIOQE4Lc4wSKm")
-
 	// Check if user input is a url
 	validURL := govalidator.IsURL(gif.GIF)
 	if validURL {
@@ -70,31 +60,35 @@ func BuildGif(gif *GIF) error {
 		gif.GIF = url.String()
 		gif.Tags = tags
 	} else {
-		gif.Tags = strings.Split(gif.GIF, " ")
-		res, err := api.GetSearch(gif.GIF, 1, -1, "pg", "", false)
-		if err != nil {
-			return err
-		}
-		gif.GIF = res.Data[0].Url
-		url, err := url.Parse(gif.GIF)
-		if err != nil {
-			return err
-		}
-		err = normalizeGiphyURL(url)
-		if err != nil {
-			return err
-		}
-		gif.GIF = url.String()
-		fmt.Printf("\n\n%+v", gif)
+		g.BuildGifFromTags(gif)
 	}
 
 	return nil
 
 }
 
+func (g *GifService) BuildGifFromTags(gif *GIF) error {
+	gif.Tags = strings.Split(gif.GIF, " ")
+	res, err := g.giphy.GetSearch(gif.GIF, 1, -1, "pg", "", false)
+	if err != nil {
+		return err
+	}
+	gif.GIF = res.Data[0].Url
+	url, err := url.Parse(gif.GIF)
+	if err != nil {
+		return err
+	}
+	err = normalizeGiphyURL(url)
+	if err != nil {
+		return err
+	}
+	gif.GIF = url.String()
+	return nil
+}
+
 func (g *GifService) StoreGif(gif *GIF) error {
 	// Add more details onto the gif, such as tags, and reformat the URL
-	err := BuildGif(gif)
+	err := g.BuildGif(gif)
 	if err != nil {
 		return err
 	}
