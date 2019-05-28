@@ -33,38 +33,28 @@ func NewGifService(repo Repo, api *libgiphy.Giphy) *GifService {
 	return &GifService{repo: repo, giphy: api}
 }
 
-func (g *GifService) BuildGif(gif *GIF) error {
-	var url *url.URL
-	var err error
-	// Check if user input is a url
-	validURL := govalidator.IsURL(gif.GIF)
-	if validURL {
-		fmt.Printf("is a valid url")
-		// Reformat the URL
-		url, err = url.Parse(gif.GIF)
-		if err != nil {
-			return err
-		}
+func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 
-		//Get Tags From Gif URL
-		tags, err := giphy.GetGIFTags(gif.GIF)
-		if err != nil {
-			return err
-		}
-
-		// Normalize the URL
-		err = normalizeGiphyURL(url)
-		if err != nil {
-			return err
-		}
-		gif.GIF = url.String()
-		gif.Tags = tags
-	} else {
-		g.BuildGifFromTags(gif)
+	// Reformat the URL
+	url, err := url.Parse(gif.GIF)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	//Get Tags From Gif URL
+	tags, err := giphy.GetGIFTags(gif.GIF)
+	if err != nil {
+		return err
+	}
 
+	// Normalize the URL
+	err = normalizeGiphyURL(url)
+	if err != nil {
+		return err
+	}
+	gif.GIF = url.String()
+	gif.Tags = tags
+	return nil
 }
 
 func (g *GifService) BuildGifFromTags(gif *GIF) error {
@@ -88,10 +78,23 @@ func (g *GifService) BuildGifFromTags(gif *GIF) error {
 
 func (g *GifService) StoreGif(gif *GIF) error {
 	// Add more details onto the gif, such as tags, and reformat the URL
-	err := g.BuildGif(gif)
-	if err != nil {
-		return err
+	validURL := govalidator.IsURL(gif.GIF)
+	if validURL {
+		err := g.BuildGifFromUrl(gif)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := g.BuildGifFromTags(gif)
+		if err != nil {
+			return err
+		}
 	}
+	fmt.Print(gif)
+	// err := g.BuildGif(gif)
+	// if err != nil {
+	// 	return err
+	// }
 	//Update deactive time for previous gif before storing new gif
 	lastGif, err := g.GetMostRecent()
 	if err != nil {
