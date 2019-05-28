@@ -37,6 +37,7 @@ func main() {
 		log.Fatal("Invalid Database URL format")
 	}
 
+	//Initilizing all the things
 	db, err := postgres.InitDatabase(dbURL)
 	if err != nil {
 		log.Fatalf("Unable to initialize the Database: %s", err)

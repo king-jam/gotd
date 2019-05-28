@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/king-jam/gotd/giphy"
+	libgiphy "github.com/sanzaru/go-giphy"
 )
 
 type GIF struct {
@@ -29,26 +32,53 @@ func NewGifService(repo Repo) *GifService {
 	return &GifService{repo: repo}
 }
 
+// type Giphy struct {
+// 	giphy *libgiphy.Giphy
+// }
+
+// func NewGiphy(api *libgiphy.Giphy) *Giphy {
+// 	return &Giphy{giphy: api}
+// }
+
 func BuildGif(gif *GIF) error {
-	// Reformat the URL
-	url, err := url.Parse(gif.GIF)
-	if err != nil {
-		return err
-	}
-	//Get Tags From Gif URL
-	tags, err := giphy.GetGIFTags(gif.GIF)
-	if err != nil {
-		return err
+	var url *url.URL
+	var err error
+
+	api := libgiphy.NewGiphy("B4LxlW1Av7CPwzIJL7VAIOQE4Lc4wSKm")
+
+	// Check if user input is a url
+	validURL := govalidator.IsURL(gif.GIF)
+	if validURL {
+		fmt.Printf("is a valid url")
+		// Reformat the URL
+		url, err = url.Parse(gif.GIF)
+		if err != nil {
+			return err
+		}
+
+		//Get Tags From Gif URL
+		tags, err := giphy.GetGIFTags(gif.GIF)
+		if err != nil {
+			return err
+		}
+
+		// Normalize the URL
+		err = normalizeGiphyURL(url)
+		if err != nil {
+			return err
+		}
+		gif.GIF = url.String()
+		gif.Tags = tags
+	} else {
+		res, err := api.GetSearch(gif.GIF, 1, -1, "pg", "", false)
+		if err != nil {
+			return err
+		}
+		gif.GIF = res.Data[0].Url
+		gif.Tags = strings.Split(gif.GIF, " ")
+		fmt.Printf("\n\n%+v", gif)
 	}
 
-	// Normalize the URL
-	err = normalizeGiphyURL(url)
-	if err != nil {
-		return err
-	}
-	gif.GIF = url.String()
-
-	gif.Tags = tags
 	return nil
 
 }

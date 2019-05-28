@@ -108,3 +108,13 @@ func trimFullScreenFromURL(url *url.URL) error {
 	}
 	return nil
 }
+
+// Check if tag has anything nsfw
+func isSafe(tags []string) bool {
+	for _, a := range tags {
+		if a == "nsfw" {
+			return false
+		}
+	}
+	return true
+}
