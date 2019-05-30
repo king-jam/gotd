@@ -17,6 +17,7 @@ var UserIdList = []string{
 	"UEK11RZJP", // Sammie
 	"UHH0LLBND", // Sandesh
 	"U5SFZ590Q", // Val
+	"UFQQU5S7N", // Nicole
 }
 
 // validateUser will validate userID against the UserIdList
