@@ -15,11 +15,12 @@ var UserIdList = []string{
 	"UGYDW6UJK", // Edgardo
 	"U5T9HLMAN", // James King
 	"UEK11RZJP", // Sammie
-	"UHH0LLBND", // Sandesh
-	"U5SFZ590Q", // Val
 	"UFQQU5S7N", // Nicole
 	"U5Y4FJ8JK", // Erin Bournival
 	"UM4E99TM4", // Jim Censabella
+	"UKUAY9URK", // Jeff Estrada
+	"UKWLQ33L3", // Charles Williams
+	"UK4UMCQDV", // Calvin
 }
 
 // validateUser will validate userID against the UserIdList
