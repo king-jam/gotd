@@ -11,36 +11,24 @@ import (
 	"github.com/king-jam/gotd/giphy"
 )
 
-type GIF struct {
-	ID            uint
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     *time.Time
-	DeactivatedAt time.Time
-	GIF           string `json:"url"`
-	RequesterID   string
-	RequestSrc    string
-	Tags          []string
-}
-
 type GifService struct {
-	repo  Repo
-	giphy giphy.Giphy
+	repo  *Repo
+	giphy *giphy.Giphy
 }
 
-func NewGifService(repo Repo, giphy giphy.Giphy) *GifService {
+func NewGifService(repo *Repo, giphy *giphy.Giphy) *GifService {
 	return &GifService{repo: repo, giphy: giphy}
 }
 
 func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 	// Reformat the URL
-	url, err := url.Parse(gif.GIF)
+	url, err := url.Parse(gif.URL)
 	if err != nil {
 		return err
 	}
 
 	//Get Tags From Gif URL
-	tags, err := giphy.GetGIFTags(gif.GIF)
+	tags, err := giphy.GetGIFTags(gif.URL)
 	if err != nil {
 		return err
 	}
@@ -50,14 +38,26 @@ func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 	if err != nil {
 		return err
 	}
-	gif.GIF = url.String()
-	gif.Tags = tags
+	gif.URL = url.String()
+	var tagStructs []Tag
+	for _, tag := range tags {
+		t := Tag{
+			Value: tag,
+		}
+		tagStructs = append(tagStructs, t)
+	}
+	gif.Tags = tagStructs
 	return nil
 }
 
 func (g *GifService) BuildGifFromTags(gif *GIF) error {
-	gif.Tags = strings.Split(gif.GIF, " ")
-	res, err := g.giphy.SearchGifByTags(gif.GIF)
+	var b strings.Builder
+	for _, t := range gif.Tags {
+		b.WriteString(t.Value)
+		b.WriteString(" ")
+	}
+	query := strings.TrimSpace(b.String())
+	res, err := g.giphy.SearchGifByTags(query)
 	if err != nil {
 		return err
 	}
@@ -69,13 +69,13 @@ func (g *GifService) BuildGifFromTags(gif *GIF) error {
 	if err != nil {
 		return err
 	}
-	gif.GIF = url.String()
+	gif.URL = url.String()
 	return nil
 }
 
 func (g *GifService) StoreGif(gif *GIF) error {
 	// Add more details onto the gif, such as tags, and reformat the URL
-	validURL := govalidator.IsURL(gif.GIF)
+	validURL := govalidator.IsURL(gif.URL)
 	if validURL {
 		err := g.BuildGifFromUrl(gif)
 		if err != nil {
@@ -102,13 +102,13 @@ func (g *GifService) StoreGif(gif *GIF) error {
 	}
 
 	// If user post the same URL twice, do nothing and return
-	if gif.GIF == lastGif.GIF {
+	if gif.URL == lastGif.URL {
 		return nil
 	}
 
 	//Else, update the deactivate time for previous gif
 	lastGif.DeactivatedAt = time.Now()
-	err = g.UpdateGif(&lastGif)
+	err = g.UpdateGif(lastGif)
 	if err != nil {
 		return err
 	}
@@ -136,13 +136,13 @@ func (g *GifService) RemoveGifById(id int) error {
 	return nil
 }
 
-func (g *GifService) GetGIFById(id uint) (GIF, error) {
+func (g *GifService) GetGIFById(id uint) (*GIF, error) {
 	gif, err := g.repo.FindGIFByID(id)
 	if err != nil {
-		return GIF{}, err
+		return &GIF{}, err
 	}
-	object := TransformDBGifToGif(gif)
-	return object, nil
+	//object := TransformDBGifToGif(gif)
+	return gif, nil
 }
 
 func (g *GifService) GetAllGifs() ([]GIF, error) {
@@ -152,18 +152,18 @@ func (g *GifService) GetAllGifs() ([]GIF, error) {
 		return gifList, err
 	}
 	for _, g := range gifs {
-		gif := TransformDBGifToGif(&g)
-		gifList = append(gifList, gif)
+		//gif := TransformDBGifToGif(&g)
+		gifList = append(gifList, g)
 	}
 	return gifList, nil
 }
 
-func (g *GifService) GetMostRecent() (GIF, error) {
-	dbGif, err := g.repo.LatestGIF()
+func (g *GifService) GetMostRecent() (*GIF, error) {
+	gif, err := g.repo.LatestGIF()
 	if err != nil {
-		return GIF{}, err
+		return &GIF{}, err
 	}
-	gif := TransformDBGifToGif(dbGif)
+	//gif := TransformDBGifToGif(dbGif)
 	return gif, nil
 }
 

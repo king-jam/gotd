@@ -46,7 +46,7 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		newGif := &gif.GIF{
-			GIF:         s.Text,
+			URL:         s.Text,
 			RequestSrc:  "slack",
 			RequesterID: s.UserID,
 		}

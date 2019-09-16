@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
 )
 
 var (
@@ -31,13 +30,18 @@ type DB interface {
 	LatestGIF() (*GIF, error)
 }
 
-type dbGIF struct {
+type GIF struct {
 	gorm.Model
 	DeactivatedAt time.Time
-	GIF           string
+	URL           string `json:"url"`
 	RequesterID   string
 	RequestSrc    string
-	Tags          pq.StringArray `gorm:"type:varchar(64)[]"`
+	Tags          []Tag `gorm:"many2many:gif_tags;"`
+}
+
+type Tag struct {
+	gorm.Model
+	Value string
 }
 
 type Repo struct {
@@ -51,16 +55,16 @@ func NewGIFRepo(orm *gorm.DB) (*Repo, error) {
 }
 
 func (r *Repo) InitDB() error {
-	if !r.DB.HasTable(&dbGIF{}) {
-		r.DB.CreateTable(&dbGIF{})
+	if !r.DB.HasTable(&GIF{}) {
+		r.DB.CreateTable(&GIF{})
 	}
 	return nil
 }
 
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
-	gotd := TransformGifToDBGif(gif)
-	if result := r.DB.Create(&gotd); result.Error != nil {
+	//gotd := TransformGifToDBGif(gif)
+	if result := r.DB.Create(&gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
@@ -71,8 +75,8 @@ func (r *Repo) DeleteGIFByID(id int) error {
 }
 
 func (r *Repo) Update(gif *GIF) error {
-	gotd := TransformGifToDBGif(gif)
-	if result := r.DB.Model(&dbGIF{}).Updates(gotd); result.Error != nil {
+	//gotd := TransformGifToDBGif(gif)
+	if result := r.DB.Updates(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
@@ -81,16 +85,16 @@ func (r *Repo) Update(gif *GIF) error {
 	return nil
 }
 
-func (r *Repo) FindGIFByID(id uint) (*dbGIF, error) {
-	return &dbGIF{}, nil
+func (r *Repo) FindGIFByID(id uint) (*GIF, error) {
+	return &GIF{}, nil
 }
 
-func (r *Repo) FindAllGifs() ([]dbGIF, error) {
-	return []dbGIF{}, nil
+func (r *Repo) FindAllGifs() ([]GIF, error) {
+	return []GIF{}, nil
 }
 
-func (r *Repo) LatestGIF() (*dbGIF, error) {
-	gif := new(dbGIF)
+func (r *Repo) LatestGIF() (*GIF, error) {
+	gif := new(GIF)
 	if result := r.DB.Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
@@ -100,37 +104,48 @@ func (r *Repo) LatestGIF() (*dbGIF, error) {
 	return gif, nil
 }
 
-func TransformGifToDBGif(gif *GIF) dbGIF {
-	dbGif := dbGIF{
-		Model: gorm.Model{
-			ID:        gif.ID,
-			CreatedAt: gif.CreatedAt,
-			UpdatedAt: gif.UpdatedAt,
-			DeletedAt: gif.DeletedAt,
-		},
-		GIF:           gif.GIF,
-		RequestSrc:    gif.RequestSrc,
-		RequesterID:   gif.RequesterID,
-		Tags:          pq.StringArray(gif.Tags),
-		DeactivatedAt: gif.DeactivatedAt,
+func (r *Repo) TagsByGIF(gif *GIF) ([]Tag, error) {
+	var tags []Tag
+	if result := r.DB.Model(gif).Related(&tags); result.Error != nil {
+		if gorm.IsRecordNotFoundError(result.Error) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, ErrDatabaseGeneral(result.Error.Error())
 	}
-	return dbGif
+	return tags, nil
 }
 
-func TransformDBGifToGif(dbGIF *dbGIF) GIF {
-	gif := GIF{
-		ID:            dbGIF.ID,
-		CreatedAt:     dbGIF.CreatedAt,
-		UpdatedAt:     dbGIF.UpdatedAt,
-		DeletedAt:     dbGIF.DeletedAt,
-		GIF:           dbGIF.GIF,
-		RequestSrc:    dbGIF.RequestSrc,
-		RequesterID:   dbGIF.RequesterID,
-		Tags:          dbGIF.Tags,
-		DeactivatedAt: dbGIF.DeactivatedAt,
-	}
-	return gif
-}
+// func TransformGifToDBGif(gif *GIF) GIF {
+// 	dbGif := GIF{
+// 		Model: gorm.Model{
+// 			ID:        gif.ID,
+// 			CreatedAt: gif.CreatedAt,
+// 			UpdatedAt: gif.UpdatedAt,
+// 			DeletedAt: gif.DeletedAt,
+// 		},
+// 		GIF:           gif.GIF,
+// 		RequestSrc:    gif.RequestSrc,
+// 		RequesterID:   gif.RequesterID,
+// 		Tags:          pq.StringArray(gif.Tags),
+// 		DeactivatedAt: gif.DeactivatedAt,
+// 	}
+// 	return dbGif
+// }
+
+// func TransformDBGifToGif(dbGIF *GIF) GIF {
+// 	gif := GIF{
+// 		ID:            dbGIF.ID,
+// 		CreatedAt:     dbGIF.CreatedAt,
+// 		UpdatedAt:     dbGIF.UpdatedAt,
+// 		DeletedAt:     dbGIF.DeletedAt,
+// 		GIF:           dbGIF.GIF,
+// 		RequestSrc:    dbGIF.RequestSrc,
+// 		RequesterID:   dbGIF.RequesterID,
+// 		Tags:          dbGIF.Tags,
+// 		DeactivatedAt: dbGIF.DeactivatedAt,
+// 	}
+// 	return gif
+// }
 
 // 1. Import SQL dialect we are using (postgres)
 // 2. create GORM DB instance with dialect

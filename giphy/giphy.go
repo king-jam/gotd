@@ -14,7 +14,8 @@ type Giphy struct {
 	api *libgiphy.Giphy
 }
 
-func NewGiphy(api *libgiphy.Giphy) (*Giphy, error) {
+func NewGiphy(api_key string) (*Giphy, error) {
+	api := libgiphy.NewGiphy(api_key)
 	return &Giphy{api: api}, nil
 }
 
