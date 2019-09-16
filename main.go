@@ -45,11 +45,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to initialize the Database: %s", err)
 	}
-	repo, err := gif.NewGIFRepo(db.Db)
+	repo, err := gif.NewGIFRepo(db.DB)
 	if err != nil {
 		log.Fatalf("Unable to initialize the Repository: %s", err)
 	}
-	err = repo.InitDB(db.Db)
+	err = repo.InitDB()
 	if err != nil {
 		log.Fatalf("Unable to initialize the Schemas: %s", err)
 	}

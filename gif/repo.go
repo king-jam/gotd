@@ -41,18 +41,18 @@ type dbGIF struct {
 }
 
 type Repo struct {
-	Db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewGIFRepo(orm *gorm.DB) (*Repo, error) {
 	return &Repo{
-		Db: orm,
+		DB: orm,
 	}, nil
 }
 
-func (r *Repo) InitDB(db *gorm.DB) error {
-	if !r.Db.HasTable(&dbGIF{}) {
-		r.Db.CreateTable(&dbGIF{})
+func (r *Repo) InitDB() error {
+	if !r.DB.HasTable(&dbGIF{}) {
+		r.DB.CreateTable(&dbGIF{})
 	}
 	return nil
 }
@@ -60,7 +60,7 @@ func (r *Repo) InitDB(db *gorm.DB) error {
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
 	gotd := TransformGif(gif)
-	if result := r.Db.Create(&gotd); result.Error != nil {
+	if result := r.DB.Create(&gotd); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
@@ -72,7 +72,7 @@ func (r *Repo) DeleteGIFByID(id int) error {
 
 func (r *Repo) Update(gif *GIF) error {
 	gotd := TransformGif(gif)
-	if result := r.Db.Model(&dbGIF{}).Updates(gotd); result.Error != nil {
+	if result := r.DB.Model(&dbGIF{}).Updates(gotd); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
@@ -91,7 +91,7 @@ func (r *Repo) FindAllGifs() ([]dbGIF, error) {
 
 func (r *Repo) LatestGIF() (*dbGIF, error) {
 	gif := new(dbGIF)
-	if result := r.Db.Model(&dbGIF{}).Last(gif); result.Error != nil {
+	if result := r.DB.Model(&dbGIF{}).Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
@@ -102,6 +102,12 @@ func (r *Repo) LatestGIF() (*dbGIF, error) {
 
 func TransformGif(gif *GIF) dbGIF {
 	dbGif := dbGIF{
+		Model: gorm.Model{
+			ID:        gif.ID,
+			CreatedAt: gif.CreatedAt,
+			UpdatedAt: gif.UpdatedAt,
+			DeletedAt: gif.DeletedAt,
+		},
 		GIF:           gif.GIF,
 		RequestSrc:    gif.RequestSrc,
 		RequesterID:   gif.RequesterID,
