@@ -95,7 +95,7 @@ func (r *Repo) FindAllGifs() ([]GIF, error) {
 
 func (r *Repo) LatestGIF() (*GIF, error) {
 	gif := new(GIF)
-	if result := r.DB.Last(gif); result.Error != nil {
+	if result := r.DB.Preload("Tags").Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
