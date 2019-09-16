@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"errors"
 	"net/url"
 	"time"
 
