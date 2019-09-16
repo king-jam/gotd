@@ -87,17 +87,16 @@ func (g *GifService) StoreGif(gif *GIF) error {
 			return err
 		}
 	}
-	fmt.Print(gif)
 	//Update deactive time for previous gif before storing new gif
 	lastGif, err := g.GetMostRecent()
 	if err != nil {
 		// If there is no previous gif, then store new gif
 		if err == ErrRecordNotFound {
-			err = g.StoreGif(gif)
+			err = g.repo.Insert(gif)
 			if err != nil {
 				return err
 			}
-			return err
+			return nil
 		}
 		return err
 	}
