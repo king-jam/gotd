@@ -142,12 +142,7 @@ func (g *GifService) GetGIFById(id uint) (GIF, error) {
 	if err != nil {
 		return GIF{}, err
 	}
-	object := GIF{
-		GIF:         gif.GIF,
-		RequesterID: gif.RequesterID,
-		RequestSrc:  gif.RequestSrc,
-		Tags:        gif.Tags,
-	}
+	object := TransformDBGifToGif(gif)
 	return object, nil
 }
 
@@ -157,14 +152,8 @@ func (g *GifService) GetAllGifs() ([]GIF, error) {
 	if err != nil {
 		return gifList, err
 	}
-	for i := range gifs {
-		gif := GIF{
-			ID:          gifs[i].ID,
-			GIF:         gifs[i].GIF,
-			RequesterID: gifs[i].RequesterID,
-			RequestSrc:  gifs[i].RequestSrc,
-			Tags:        gifs[i].Tags,
-		}
+	for _, g := range gifs {
+		gif := TransformDBGifToGif(&g)
 		gifList = append(gifList, gif)
 	}
 	return gifList, nil
@@ -175,12 +164,7 @@ func (g *GifService) GetMostRecent() (GIF, error) {
 	if err != nil {
 		return GIF{}, err
 	}
-	gif := GIF{
-		GIF:         dbGif.GIF,
-		RequesterID: dbGif.RequesterID,
-		RequestSrc:  dbGif.RequestSrc,
-		Tags:        []string(dbGif.Tags),
-	}
+	gif := TransformDBGifToGif(dbGif)
 	return gif, nil
 }
 

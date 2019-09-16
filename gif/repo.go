@@ -59,7 +59,7 @@ func (r *Repo) InitDB() error {
 
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
-	gotd := TransformGif(gif)
+	gotd := TransformGifToDBGif(gif)
 	if result := r.DB.Create(&gotd); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
@@ -71,7 +71,7 @@ func (r *Repo) DeleteGIFByID(id int) error {
 }
 
 func (r *Repo) Update(gif *GIF) error {
-	gotd := TransformGif(gif)
+	gotd := TransformGifToDBGif(gif)
 	if result := r.DB.Model(&dbGIF{}).Updates(gotd); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
@@ -91,7 +91,7 @@ func (r *Repo) FindAllGifs() ([]dbGIF, error) {
 
 func (r *Repo) LatestGIF() (*dbGIF, error) {
 	gif := new(dbGIF)
-	if result := r.DB.Model(&dbGIF{}).Last(gif); result.Error != nil {
+	if result := r.DB.Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
@@ -100,7 +100,7 @@ func (r *Repo) LatestGIF() (*dbGIF, error) {
 	return gif, nil
 }
 
-func TransformGif(gif *GIF) dbGIF {
+func TransformGifToDBGif(gif *GIF) dbGIF {
 	dbGif := dbGIF{
 		Model: gorm.Model{
 			ID:        gif.ID,
@@ -115,6 +115,21 @@ func TransformGif(gif *GIF) dbGIF {
 		DeactivatedAt: gif.DeactivatedAt,
 	}
 	return dbGif
+}
+
+func TransformDBGifToGif(dbGIF *dbGIF) GIF {
+	gif := GIF{
+		ID:            dbGIF.ID,
+		CreatedAt:     dbGIF.CreatedAt,
+		UpdatedAt:     dbGIF.UpdatedAt,
+		DeletedAt:     dbGIF.DeletedAt,
+		GIF:           dbGIF.GIF,
+		RequestSrc:    dbGIF.RequestSrc,
+		RequesterID:   dbGIF.RequesterID,
+		Tags:          dbGIF.Tags,
+		DeactivatedAt: dbGIF.DeactivatedAt,
+	}
+	return gif
 }
 
 // 1. Import SQL dialect we are using (postgres)
