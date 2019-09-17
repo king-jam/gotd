@@ -109,7 +109,8 @@ func (g *GifService) StoreGif(gif *GIF) error {
 	}
 
 	//Else, update the deactivate time for previous gif
-	lastGif.DeactivatedAt = time.Now()
+	now := time.Now()
+	lastGif.DeactivatedAt = &now
 	err = g.UpdateGif(lastGif)
 	if err != nil {
 		return err

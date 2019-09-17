@@ -32,7 +32,7 @@ type DB interface {
 
 type GIF struct {
 	gorm.Model
-	DeactivatedAt time.Time
+	DeactivatedAt *time.Time
 	URL           string `json:"url"`
 	RequesterID   string
 	RequestSrc    string
