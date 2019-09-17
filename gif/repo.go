@@ -36,13 +36,13 @@ type GIF struct {
 	URL           string `json:"url"`
 	RequesterID   string
 	RequestSrc    string
-	Tags          []Tag `gorm:"many2many:gif_tags;"`
+	//Tags          []Tag `gorm:"many2many:gif_tags;"`
 }
 
-type Tag struct {
-	gorm.Model
-	Value string
-}
+// type Tag struct {
+// 	gorm.Model
+// 	Value string
+// }
 
 type Repo struct {
 	DB *gorm.DB
@@ -58,9 +58,9 @@ func (r *Repo) InitDB() error {
 	if !r.DB.HasTable(&GIF{}) {
 		r.DB.CreateTable(&GIF{})
 	}
-	if !r.DB.HasTable(&Tag{}) {
-		r.DB.CreateTable(&Tag{})
-	}
+	// if !r.DB.HasTable(&Tag{}) {
+	// 	r.DB.CreateTable(&Tag{})
+	// }
 	return nil
 }
 
@@ -98,24 +98,13 @@ func (r *Repo) FindAllGifs() ([]GIF, error) {
 
 func (r *Repo) LatestGIF() (*GIF, error) {
 	gif := new(GIF)
-	if result := r.DB.Preload("Tags").Last(gif); result.Error != nil {
+	if result := r.DB.Last(gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
 		return nil, ErrDatabaseGeneral(result.Error.Error())
 	}
 	return gif, nil
-}
-
-func (r *Repo) TagsByGIF(gif *GIF) ([]Tag, error) {
-	var tags []Tag
-	if result := r.DB.Model(gif).Related(&tags); result.Error != nil {
-		if gorm.IsRecordNotFoundError(result.Error) {
-			return nil, ErrRecordNotFound
-		}
-		return nil, ErrDatabaseGeneral(result.Error.Error())
-	}
-	return tags, nil
 }
 
 // func TransformGifToDBGif(gif *GIF) GIF {

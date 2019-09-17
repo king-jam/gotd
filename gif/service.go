@@ -1,10 +1,10 @@
 package gif
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/asaskevich/govalidator"
@@ -28,10 +28,10 @@ func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 	}
 
 	//Get Tags From Gif URL
-	tags, err := giphy.GetGIFTags(gif.URL)
-	if err != nil {
-		return err
-	}
+	// tags, err := giphy.GetGIFTags(gif.URL)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Normalize the URL
 	err = normalizeGiphyURL(url)
@@ -39,39 +39,40 @@ func (g *GifService) BuildGifFromUrl(gif *GIF) error {
 		return err
 	}
 	gif.URL = url.String()
-	var tagStructs []Tag
-	for _, tag := range tags {
-		t := Tag{
-			Value: tag,
-		}
-		tagStructs = append(tagStructs, t)
-	}
-	gif.Tags = tagStructs
+
+	// var tagStructs []Tag
+	// for _, tag := range tags {
+	// 	t := Tag{
+	// 		Value: tag,
+	// 	}
+	// 	tagStructs = append(tagStructs, t)
+	// }
+	// gif.Tags = tagStructs
 	return nil
 }
 
-func (g *GifService) BuildGifFromTags(gif *GIF) error {
-	var b strings.Builder
-	for _, t := range gif.Tags {
-		b.WriteString(t.Value)
-		b.WriteString(" ")
-	}
-	query := strings.TrimSpace(b.String())
-	res, err := g.giphy.SearchGifByTags(query)
-	if err != nil {
-		return err
-	}
-	url, err := url.Parse(res)
-	if err != nil {
-		return err
-	}
-	err = normalizeGiphyURL(url)
-	if err != nil {
-		return err
-	}
-	gif.URL = url.String()
-	return nil
-}
+// func (g *GifService) BuildGifFromTags(gif *GIF) error {
+// 	var b strings.Builder
+// 	for _, t := range gif.Tags {
+// 		b.WriteString(t.Value)
+// 		b.WriteString(" ")
+// 	}
+// 	query := strings.TrimSpace(b.String())
+// 	res, err := g.giphy.SearchGifByTags(query)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	url, err := url.Parse(res)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = normalizeGiphyURL(url)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	gif.URL = url.String()
+// 	return nil
+// }
 
 func (g *GifService) StoreGif(gif *GIF) error {
 	// Add more details onto the gif, such as tags, and reformat the URL
@@ -82,10 +83,11 @@ func (g *GifService) StoreGif(gif *GIF) error {
 			return err
 		}
 	} else {
-		err := g.BuildGifFromTags(gif)
-		if err != nil {
-			return err
-		}
+		return errors.New("Invalid URL")
+		// err := g.BuildGifFromTags(gif)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 	//Update deactive time for previous gif before storing new gif
 	lastGif, err := g.GetMostRecent()
