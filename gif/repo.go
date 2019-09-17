@@ -67,7 +67,7 @@ func (r *Repo) InitDB() error {
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
 	//gotd := TransformGifToDBGif(gif)
-	if result := r.DB.Create(&gif); result.Error != nil {
+	if result := r.DB.Create(gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
