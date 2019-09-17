@@ -67,7 +67,7 @@ func (r *Repo) InitDB() error {
 // Insert will add a gif into the database
 func (r *Repo) Insert(gif *GIF) error {
 	//gotd := TransformGifToDBGif(gif)
-	if result := r.DB.Create(gif); result.Error != nil {
+	if result := r.DB.Create(&gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
 	return nil
@@ -79,7 +79,7 @@ func (r *Repo) DeleteGIFByID(id int) error {
 
 func (r *Repo) Update(gif *GIF) error {
 	//gotd := TransformGifToDBGif(gif)
-	if result := r.DB.Updates(gif); result.Error != nil {
+	if result := r.DB.Updates(&gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
@@ -98,7 +98,7 @@ func (r *Repo) FindAllGifs() ([]GIF, error) {
 
 func (r *Repo) LatestGIF() (*GIF, error) {
 	gif := new(GIF)
-	if result := r.DB.Last(gif); result.Error != nil {
+	if result := r.DB.Last(&gif); result.Error != nil {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
