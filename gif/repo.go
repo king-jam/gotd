@@ -58,6 +58,7 @@ func (r *Repo) InitDB() error {
 	if !r.DB.HasTable(&GIF{}) {
 		r.DB.CreateTable(&GIF{})
 	}
+	r.DB.AutoMigrate(&GIF{})
 	// if !r.DB.HasTable(&Tag{}) {
 	// 	r.DB.CreateTable(&Tag{})
 	// }
