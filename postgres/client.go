@@ -25,8 +25,6 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	db.DB().SetMaxIdleConns(20)
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	db.DB().SetMaxOpenConns(20)
-	// enable logging
-	db.LogMode(true)
 
 	return &DBClient{
 		DB: db,
