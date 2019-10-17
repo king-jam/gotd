@@ -2,14 +2,12 @@ package postgres
 
 import (
 	"net/url"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
 )
 
-const minimumHistoryThresholdMins = 10 * time.Minute
-
+// DBClient provides the DB implementation for injection
 type DBClient struct {
 	DB *gorm.DB
 }

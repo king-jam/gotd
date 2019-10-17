@@ -8,12 +8,13 @@ import (
 	"github.com/king-jam/gotd/gif"
 )
 
-func New(service *gif.GifService) http.Handler {
+// New returns an initialized handler for the dashboard
+func New(service *gif.Service) http.Handler {
 	return dashboardHandler{service: service}
 }
 
 type dashboardHandler struct {
-	service *gif.GifService
+	service *gif.Service
 }
 
 func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -29,5 +30,7 @@ func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	if _, err := w.Write(response); err != nil {
+		log.Printf("Write failed with err: %s", err)
+	}
 }

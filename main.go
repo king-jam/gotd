@@ -13,9 +13,8 @@ import (
 
 	"github.com/king-jam/gotd/dashboard"
 	"github.com/king-jam/gotd/gif"
-	"github.com/king-jam/gotd/giphy"
 	"github.com/king-jam/gotd/postgres"
-	"github.com/king-jam/gotd/slack_integration"
+	"github.com/king-jam/gotd/slack"
 )
 
 func main() {
@@ -30,7 +29,7 @@ func main() {
 	}
 
 	// Catch signal so we can shutdown gracefully
-	sigCh := make(chan os.Signal)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 
 	dbURL, err := url.Parse(dbString)
@@ -53,14 +52,9 @@ func main() {
 	}
 	defer db.Close()
 
-	api_key := os.Getenv("GIPHY_API_KEY")
-	giphy, err := giphy.NewGiphy(api_key)
-	if err != nil {
-		log.Fatalf("Failed to get giphy service api: %s", err)
-	}
-	gifService := gif.NewGifService(repo, giphy)
+	gifService := gif.NewGifService(repo)
 
-	siHandler := slack_integration.New(gifService)
+	siHandler := slack.New(gifService)
 	dashboardHandler := dashboard.New(gifService)
 
 	appMux := http.NewServeMux()

@@ -20,16 +20,7 @@ func (edg ErrDatabaseGeneral) Error() string {
 	return fmt.Sprintf("General Database Error: %s", edg)
 }
 
-type DB interface {
-	InitDB() error
-	Insert(*GIF) error
-	DeleteGIFByID(id int) error
-	Update(*GIF) error
-	FindGIFByID(id uint) (*GIF, error)
-	FindAllGifs() ([]GIF, error)
-	LatestGIF() (*GIF, error)
-}
-
+// GIF is the model used for actions
 type GIF struct {
 	gorm.Model
 	DeactivatedAt *time.Time
@@ -44,16 +35,21 @@ type GIF struct {
 // 	Value string
 // }
 
+// Repo provides access to the database through an abstraction
+// that allows for swapping out the datastore and not breaking
+// application logic
 type Repo struct {
 	DB *gorm.DB
 }
 
+// NewGIFRepo initializes the repo with the ORM
 func NewGIFRepo(orm *gorm.DB) (*Repo, error) {
 	return &Repo{
 		DB: orm,
 	}, nil
 }
 
+// InitDB provides hooks to ensure tables and migrations are performed
 func (r *Repo) InitDB() error {
 	if !r.DB.HasTable(&GIF{}) {
 		r.DB.CreateTable(&GIF{})
@@ -74,10 +70,7 @@ func (r *Repo) Insert(gif *GIF) error {
 	return nil
 }
 
-func (r *Repo) DeleteGIFByID(id int) error {
-	return nil
-}
-
+// Update performs updates to a record
 func (r *Repo) Update(gif *GIF) error {
 	//gotd := TransformGifToDBGif(gif)
 	if result := r.DB.Model(&GIF{}).Updates(gif); result.Error != nil {
@@ -89,14 +82,7 @@ func (r *Repo) Update(gif *GIF) error {
 	return nil
 }
 
-func (r *Repo) FindGIFByID(id uint) (*GIF, error) {
-	return &GIF{}, nil
-}
-
-func (r *Repo) FindAllGifs() ([]GIF, error) {
-	return []GIF{}, nil
-}
-
+// LatestGIF gets the latest entry from the database
 func (r *Repo) LatestGIF() (*GIF, error) {
 	gif := new(GIF)
 	if result := r.DB.Model(&GIF{}).Last(gif); result.Error != nil {
@@ -107,40 +93,3 @@ func (r *Repo) LatestGIF() (*GIF, error) {
 	}
 	return gif, nil
 }
-
-// func TransformGifToDBGif(gif *GIF) GIF {
-// 	dbGif := GIF{
-// 		Model: gorm.Model{
-// 			ID:        gif.ID,
-// 			CreatedAt: gif.CreatedAt,
-// 			UpdatedAt: gif.UpdatedAt,
-// 			DeletedAt: gif.DeletedAt,
-// 		},
-// 		GIF:           gif.GIF,
-// 		RequestSrc:    gif.RequestSrc,
-// 		RequesterID:   gif.RequesterID,
-// 		Tags:          pq.StringArray(gif.Tags),
-// 		DeactivatedAt: gif.DeactivatedAt,
-// 	}
-// 	return dbGif
-// }
-
-// func TransformDBGifToGif(dbGIF *GIF) GIF {
-// 	gif := GIF{
-// 		ID:            dbGIF.ID,
-// 		CreatedAt:     dbGIF.CreatedAt,
-// 		UpdatedAt:     dbGIF.UpdatedAt,
-// 		DeletedAt:     dbGIF.DeletedAt,
-// 		GIF:           dbGIF.GIF,
-// 		RequestSrc:    dbGIF.RequestSrc,
-// 		RequesterID:   dbGIF.RequesterID,
-// 		Tags:          dbGIF.Tags,
-// 		DeactivatedAt: dbGIF.DeactivatedAt,
-// 	}
-// 	return gif
-// }
-
-// 1. Import SQL dialect we are using (postgres)
-// 2. create GORM DB instance with dialect
-// 3. create GIF Service Repo with GORM DB instance
-// 4. create GIF Service with GIF Service Repo

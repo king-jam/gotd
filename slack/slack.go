@@ -1,4 +1,4 @@
-package slack_integration
+package slack
 
 import (
 	"log"
@@ -9,14 +9,15 @@ import (
 	"github.com/nlopes/slack"
 )
 
-const SuccessMsg = "GIF Successfully posted to GOTD"
+const successMsg = "GIF Successfully posted to GOTD"
 
-func New(service *gif.GifService) http.Handler {
+// New returns a handler for incoming Slack supported commands
+func New(service *gif.Service) http.Handler {
 	return slashCommandHandler{service: service}
 }
 
 type slashCommandHandler struct {
-	service *gif.GifService
+	service *gif.Service
 }
 
 // Slack command handler
@@ -38,10 +39,12 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch s.Command {
 	case "/gotd":
 		// Validate user against the user pool
-		userId := s.UserID
-		if !validateUser(userId) {
+		userID := s.UserID
+		if !validateUser(userID) {
 			response := userCmd + "\n" + "You don't have permission to change GOTD"
-			w.Write([]byte(response))
+			if _, err := w.Write([]byte(response)); err != nil {
+				log.Printf("Write failed with err: %s", err)
+			}
 			return
 		}
 
@@ -55,12 +58,16 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print(err)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(userCmd + "\n" + err.Error()))
+			if _, err := w.Write([]byte(userCmd + "\n" + err.Error())); err != nil {
+				log.Printf("Write failed with err: %s", err)
+			}
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(userCmd + "\n" + SuccessMsg))
+		if _, err := w.Write([]byte(userCmd + "\n" + successMsg)); err != nil {
+			log.Printf("Write failed with err: %s", err)
+		}
 	default:
 		return
 	}

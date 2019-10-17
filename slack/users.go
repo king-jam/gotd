@@ -1,6 +1,6 @@
-package slack_integration
+package slack
 
-var UserIdList = []string{
+var userIDList = []string{
 	// Hopkinton
 	"U5SFY08HW", // Ethan K
 	"U5SFZ590Q", // Val C
@@ -31,10 +31,10 @@ var UserIdList = []string{
 	"UBFRHV5GW", // AK
 }
 
-// validateUser will validate userID against the UserIdList
-func validateUser(userId string) bool {
-	for _, user := range UserIdList {
-		if userId == user {
+// validateUser will validate userID against the userIDList
+func validateUser(userID string) bool {
+	for _, user := range userIDList {
+		if userID == user {
 			return true
 		}
 	}
