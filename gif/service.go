@@ -10,9 +10,9 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-// Service provides 
+// Service provides
 type Service struct {
-	repo  *Repo
+	repo *Repo
 }
 
 // NewGifService returns an initialized service struct
