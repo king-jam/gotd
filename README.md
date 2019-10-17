@@ -1,1 +1,2 @@
 # gotd
+[![Go Report Card](https://goreportcard.com/badge/github.com/king-jam/gotd)](https://goreportcard.com/report/github.com/king-jam/gotd) ![GitHub](https://img.shields.io/github/license/king-jam/gotd)
