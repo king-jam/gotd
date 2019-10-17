@@ -1,6 +1,3 @@
-# use the latest ubuntu environment (18.04) available on travis
-dist: xenial
-
 language: go
 
 # You don't need to test on very old versions of the Go compiler. It's the user's
