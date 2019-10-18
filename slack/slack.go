@@ -1,7 +1,8 @@
 package slack
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
+
 	"net/http"
 	"os"
 
@@ -25,26 +26,31 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Parse the command
 	s, err := slack.SlashCommandParse(r)
 	if err != nil {
-		log.Print("failed to parse command")
+		log.Debugf("failed to parse command: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 	// Validate if command is from slack
 	if !s.ValidateToken(os.Getenv("SLACK_VERIFICATION_TOKEN")) {
-		log.Print("unable to validate Slack Token")
+		log.Debugf("unable to validate slack token: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
+
 	userCmd := "Requested GIF\n" + s.Text
+
 	switch s.Command {
 	case "/gotd":
 		// Validate user against the user pool
 		userID := s.UserID
-		if !validateUser(userID) {
+		if !h.validateUser(userID) {
 			response := userCmd + "\n" + "You don't have permission to change GOTD"
 			if _, err := w.Write([]byte(response)); err != nil {
-				log.Printf("Write failed with err: %s", err)
+				log.Debugf("write failed with err: %s", err)
 			}
+
 			return
 		}
 
@@ -58,15 +64,18 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Print(err)
 			w.WriteHeader(http.StatusOK)
+
 			if _, err := w.Write([]byte(userCmd + "\n" + err.Error())); err != nil {
-				log.Printf("Write failed with err: %s", err)
+				log.Debugf("write failed with err: %s", err)
 			}
+
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
+
 		if _, err := w.Write([]byte(userCmd + "\n" + successMsg)); err != nil {
-			log.Printf("Write failed with err: %s", err)
+			log.Debugf("write failed with err: %s", err)
 		}
 	default:
 		return

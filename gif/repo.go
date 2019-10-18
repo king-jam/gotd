@@ -54,6 +54,7 @@ func (r *Repo) InitDB() error {
 	if !r.DB.HasTable(&GIF{}) {
 		r.DB.CreateTable(&GIF{})
 	}
+
 	r.DB.AutoMigrate(&GIF{})
 	// if !r.DB.HasTable(&Tag{}) {
 	// 	r.DB.CreateTable(&Tag{})
@@ -67,6 +68,7 @@ func (r *Repo) Insert(gif *GIF) error {
 	if result := r.DB.Model(&GIF{}).Create(gif); result.Error != nil {
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
+
 	return nil
 }
 
@@ -77,8 +79,10 @@ func (r *Repo) Update(gif *GIF) error {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return ErrRecordNotFound
 		}
+
 		return ErrDatabaseGeneral(result.Error.Error())
 	}
+
 	return nil
 }
 
@@ -89,7 +93,9 @@ func (r *Repo) LatestGIF() (*GIF, error) {
 		if gorm.IsRecordNotFoundError(result.Error) {
 			return nil, ErrRecordNotFound
 		}
+
 		return nil, ErrDatabaseGeneral(result.Error.Error())
 	}
+
 	return gif, nil
 }
