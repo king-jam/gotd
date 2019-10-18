@@ -33,6 +33,7 @@ func (g *Service) BuildGIFFromURL(gif *GIF) error {
 	if err != nil {
 		return err
 	}
+
 	gif.URL = url.String()
 
 	return nil
@@ -48,7 +49,7 @@ func (g *Service) StoreGif(gif *GIF) error {
 			return err
 		}
 	} else {
-		return errors.New("Invalid URL")
+		return errors.New("invalid URL")
 		// err := g.BuildGifFromTags(gif)
 		// if err != nil {
 		// 	return err
@@ -63,8 +64,10 @@ func (g *Service) StoreGif(gif *GIF) error {
 			if err != nil {
 				return err
 			}
+
 			return nil
 		}
+
 		return err
 	}
 
@@ -76,6 +79,7 @@ func (g *Service) StoreGif(gif *GIF) error {
 	//Else, update the deactivate time for previous gif
 	now := time.Now()
 	lastGif.DeactivatedAt = &now
+
 	err = g.UpdateGif(lastGif)
 	if err != nil {
 		return err
@@ -85,6 +89,7 @@ func (g *Service) StoreGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -94,6 +99,7 @@ func (g *Service) UpdateGif(gif *GIF) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -103,7 +109,6 @@ func (g *Service) GetMostRecent() (*GIF, error) {
 	if err != nil {
 		return &GIF{}, err
 	}
-	//gif := TransformDBGifToGif(dbGif)
 	return gif, nil
 }
 
@@ -116,17 +121,20 @@ func validateURL(url *url.URL) bool {
 // normalizeGiphyURL will add /fullscreen to URL
 func normalizeGiphyURL(url *url.URL) error {
 	if !validateURL(url) {
-		return fmt.Errorf("Invalid URL - Use Giphy.com")
+		return fmt.Errorf("invalid URL - Use Giphy.com")
 	}
+
 	var fullPath string
 	// Check if URL has "/fullscreen"
 	ok, err := path.Match("/gifs/*/fullscreen", url.Path)
 	if err != nil {
 		return err
 	}
+
 	if !ok {
 		fullPath = path.Join(url.Path, "fullscreen")
 		url.Path = fullPath
 	}
+
 	return nil
 }

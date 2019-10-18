@@ -1,88 +1,38 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/king-jam/gotd/dashboard"
-	"github.com/king-jam/gotd/gif"
-	"github.com/king-jam/gotd/postgres"
-	"github.com/king-jam/gotd/slack"
+	"github.com/king-jam/gotd/app"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("$PORT must be set")
-	}
-
-	dbString := os.Getenv("DATABASE_URL")
-	if dbString == "" {
-		log.Fatal("$DATABASE_URL must be set")
-	}
+	// cause the new instance to be created
+	gotd := app.New()
 
 	// Catch signal so we can shutdown gracefully
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 
-	dbURL, err := url.Parse(dbString)
-	if err != nil {
-		log.Fatal("Invalid Database URL format")
-	}
-
-	//Initilizing all the things
-	db, err := postgres.InitDatabase(dbURL)
-	if err != nil {
-		log.Fatalf("Unable to initialize the Database: %s", err)
-	}
-	repo, err := gif.NewGIFRepo(db.DB)
-	if err != nil {
-		log.Fatalf("Unable to initialize the Repository: %s", err)
-	}
-	err = repo.InitDB()
-	if err != nil {
-		log.Fatalf("Unable to initialize the Schemas: %s", err)
-	}
-	defer db.Close()
-
-	gifService := gif.NewGifService(repo)
-
-	siHandler := slack.New(gifService)
-	dashboardHandler := dashboard.New(gifService)
-
-	appMux := http.NewServeMux()
-	appMux.Handle("/receive", siHandler)
-	appMux.Handle("/gif", dashboardHandler)
-	appMux.Handle("/", http.FileServer(http.Dir("./static/dashboard")))
-
-	server := &http.Server{
-		Addr:    ":" + port,
-		Handler: appMux,
-	}
-
 	go func() {
 		// service connections
-		fmt.Println("[INFO] Server listening")
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Listen Error: %s\n", err)
+		log.Infof("GOTD Starting")
+		if err := gotd.Start(); err != nil {
+			log.Fatalf("GOTD Run Error: %s\n", err)
 		}
 	}()
+	// defer will handle all the cleanup
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := server.Shutdown(ctx); err != nil {
-			log.Fatal("Server Shutdown:", err)
+		err := gotd.Shutdown()
+		if err != nil {
+			log.Fatalf("GOTD Shutdown Error: %s\n", err)
 		}
 	}()
 
-	// Wait for a signal
+	// Wait for a signal before shutting down
 	sig := <-sigCh
-	log.Printf("%s Signal received. Shutting down Application.", sig.String())
+	log.Infof("%s Signal received. Shutting down GOTD\n", sig.String())
 }

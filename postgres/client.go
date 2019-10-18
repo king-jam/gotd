@@ -1,20 +1,21 @@
 package postgres
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" // per gorm
 )
 
-// DBClient provides the DB implementation for injection
-type DBClient struct {
-	DB *gorm.DB
-}
+// NewClient takes a connection string to pass into the Database
+func NewClient(connectionString string) (*gorm.DB, error) {
+	dbURL, err := url.Parse(connectionString)
+	if err != nil {
+		return nil, fmt.Errorf("invalid database URL format: %s", err)
+	}
 
-// InitDatabase takes a connection string URL to pass into the Database
-func InitDatabase(url *url.URL) (*DBClient, error) {
-	db, err := gorm.Open(url.Scheme, url.String())
+	db, err := gorm.Open(dbURL.Scheme, dbURL.String())
 	if err != nil {
 		return nil, err
 	}
@@ -24,12 +25,5 @@ func InitDatabase(url *url.URL) (*DBClient, error) {
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	db.DB().SetMaxOpenConns(20)
 
-	return &DBClient{
-		DB: db,
-	}, nil
-}
-
-// Close wraps the db close function for easy cleanup
-func (c *DBClient) Close() {
-	c.DB.Close()
+	return db, nil
 }

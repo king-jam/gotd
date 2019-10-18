@@ -2,8 +2,9 @@ package dashboard
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/king-jam/gotd/gif"
 )
@@ -20,17 +21,22 @@ type dashboardHandler struct {
 func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gif, err := d.service.GetMostRecent()
 	if err != nil {
-		log.Print("failed to get latest GIF")
+		log.Debugf("failed to get latest GIF: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
+
 	response, err := json.Marshal(gif)
 	if err != nil {
+		log.Debugf("failed to marshal response: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
+
 	if _, err := w.Write(response); err != nil {
-		log.Printf("Write failed with err: %s", err)
+		log.Debugf("response failed with err: %s", err)
 	}
 }
