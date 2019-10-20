@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/king-jam/gotd/gif"
+	"github.com/king-jam/gotd/pkg/gif"
 	"github.com/nlopes/slack"
 )
 

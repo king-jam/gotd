@@ -5,13 +5,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/king-jam/gotd/app"
+	"github.com/king-jam/gotd/pkg/gotd"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
 	// cause the new instance to be created
-	gotd := app.New()
+	app := gotd.New()
 
 	// Catch signal so we can shutdown gracefully
 	sigCh := make(chan os.Signal, 1)
@@ -20,13 +20,13 @@ func main() {
 	go func() {
 		// service connections
 		log.Infof("GOTD Starting")
-		if err := gotd.Start(); err != nil {
+		if err := app.Start(); err != nil {
 			log.Fatalf("GOTD Run Error: %s\n", err)
 		}
 	}()
 	// defer will handle all the cleanup
 	defer func() {
-		err := gotd.Shutdown()
+		err := app.Shutdown()
 		if err != nil {
 			log.Fatalf("GOTD Shutdown Error: %s\n", err)
 		}

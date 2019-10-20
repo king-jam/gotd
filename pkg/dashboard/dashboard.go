@@ -3,19 +3,22 @@ package dashboard
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/king-jam/gotd/gif"
+	"github.com/king-jam/gotd/pkg/gif"
 )
 
 // New returns an initialized handler for the dashboard
 func New(service *gif.Service) http.Handler {
-	return dashboardHandler{service: service}
+	cache := new(sync.Map)
+	return dashboardHandler{service: service, cacheMap: cache}
 }
 
 type dashboardHandler struct {
-	service *gif.Service
+	service  *gif.Service
+	cacheMap *sync.Map
 }
 
 func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

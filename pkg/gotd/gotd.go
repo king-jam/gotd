@@ -1,4 +1,4 @@
-package app
+package gotd
 
 import (
 	"context"
@@ -15,18 +15,18 @@ import (
 	"github.com/king-jam/gotd/slack"
 )
 
-type Context struct {
+type App struct {
 	database *gorm.DB
 	server   *http.Server
 }
 
 // New return a default uninitialized App instance
-func New() *Context {
-	return &Context{}
+func New() *App {
+	return &App{}
 }
 
 // Start creates and starts all necessary services
-func (a *Context) Start() error {
+func (a *App) Start() error {
 	db, err := initializeDatabase()
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (a *Context) Start() error {
 }
 
 // Shutdown tries to gracefully cleanup and shutdown all services
-func (a *Context) Shutdown() error {
+func (a *App) Shutdown() error {
 	// handle the server shutdown process
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
