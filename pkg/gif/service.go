@@ -109,6 +109,7 @@ func (g *Service) GetMostRecent() (*GIF, error) {
 	if err != nil {
 		return &GIF{}, err
 	}
+
 	return gif, nil
 }
 

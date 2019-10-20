@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/king-jam/gotd/dashboard"
-	"github.com/king-jam/gotd/gif"
-	"github.com/king-jam/gotd/postgres"
-	"github.com/king-jam/gotd/slack"
+	"github.com/king-jam/gotd/pkg/dashboard"
+	"github.com/king-jam/gotd/pkg/gif"
+	"github.com/king-jam/gotd/pkg/postgres"
+	"github.com/king-jam/gotd/pkg/slack"
 )
 
 type App struct {
@@ -66,6 +66,7 @@ func (a *App) Shutdown() error {
 	if err := a.database.Close(); err != nil {
 		return err
 	}
+
 	return nil
 }
 

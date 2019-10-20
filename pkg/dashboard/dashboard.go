@@ -34,6 +34,7 @@ func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Debugf("failed to marshal response: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 
