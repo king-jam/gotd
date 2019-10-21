@@ -29,7 +29,7 @@ type testCase struct {
 	expected expectedValues
 }
 
-func TestHTTPHandler(t *testing.T) {
+func TestSlackHandler(t *testing.T) {
 	tests := map[string]testCase{
 		"valid setup": {
 			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true},

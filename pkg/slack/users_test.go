@@ -6,14 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidate(t *testing.T) {
+func TestValidateUser(t *testing.T) {
 	tests := map[string]struct {
 		id       string
 		expected bool
 	}{
 		"valid ID":   {id: "U5T9HLMAN", expected: true},
 		"invalid ID": {id: "THEBADMAN", expected: false},
-		"bad format": {id: "NOT VALID", expected: false},
 	}
 
 	for name, test := range tests {
