@@ -1,0 +1,64 @@
+swagger: '2.0'
+info:
+  title: GOTD
+  version: 0.0.1
+host: localhost
+basePath: /api
+tags:
+  - name: dashboard
+    description: Everything about dashboards
+  - name: user
+    description: Operations about user
+
+schemes:
+  - https
+  - http
+
+paths:
+  /dashboard:
+    get:
+        summary: List all pets
+        operationId: getDashboards
+        responses:
+          default:
+            description: unexpected error
+
+definitions:
+  ObjectMeta:
+    type: object
+    properties:
+      id:
+        x-order: 0
+        type: integer
+        format: uint
+        x-go-custom-tag: gorm:"primary_key"
+      createdAt:
+        x-order: 1
+        type: string
+        format: date-time
+      updatedAt:
+        x-order: 2
+        type: string
+        format: date-time
+      deletedAt:
+        x-order: 3
+        type: string
+        format: date-time
+        x-nullable: true
+        x-go-custom-tag: sql:"index"
+
+  GIF:
+    allOf:
+      - $ref: '#/definitions/ObjectMeta'
+      - type: object
+        properties:
+          deactivatedAt:
+            type: string
+            format: date-time
+            x-nullable: true
+          url:
+            type: string
+          requesterID:
+            type: string
+          requestSrc:
+            type: string

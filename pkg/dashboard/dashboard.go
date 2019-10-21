@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"sync"
@@ -11,18 +12,18 @@ import (
 )
 
 // New returns an initialized handler for the dashboard
-func New(service *gif.Service) http.Handler {
+func New(service gif.Service) http.Handler {
 	cache := new(sync.Map)
 	return dashboardHandler{service: service, cacheMap: cache}
 }
 
 type dashboardHandler struct {
-	service  *gif.Service
+	service  gif.Service
 	cacheMap *sync.Map
 }
 
 func (d dashboardHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	gif, err := d.service.GetMostRecent()
+	gif, err := d.service.Latest(context.Background())
 	if err != nil {
 		log.Debugf("failed to get latest GIF: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
