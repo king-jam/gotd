@@ -17,6 +17,7 @@ type inputValues struct {
 	command               string
 	gifServiceGood        bool
 	verificationTokenGood bool
+	contentTypeGood       bool
 }
 
 type expectedValues struct {
@@ -32,24 +33,28 @@ type testCase struct {
 func TestSlackHandler(t *testing.T) {
 	tests := map[string]testCase{
 		"valid setup": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true},
+			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nGIF Successfully posted to GOTD"},
 		},
 		"bad token": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, false},
+			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, false, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nunable to validate slack token"},
 		},
 		"bad gif service": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", false, true},
+			inputs:   inputValues{"U5T9HLMAN", "/gotd", false, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nerror setting"},
 		},
 		"invalid user": {
-			inputs:   inputValues{"WRONG USER", "/gotd", true, true},
+			inputs:   inputValues{"WRONG USER", "/gotd", true, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nuser not authorized"},
 		},
 		"bad command": {
-			inputs:   inputValues{"U5T9HLMAN", "/wrongcommand", true, true},
+			inputs:   inputValues{"U5T9HLMAN", "/wrongcommand", true, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\ninvalid slash command sent"},
+		},
+		"fails to parse": {
+			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true, false},
+			expected: expectedValues{500, ""},
 		},
 	}
 	for name, test := range tests {
@@ -97,7 +102,11 @@ func handlertest(t *testing.T, test testCase) {
 		t.Fatal(err)
 	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if test.inputs.contentTypeGood {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	} else {
+		req.Header.Add("Content-Type", "text/plain; boundary=")
+	}
 
 	// We create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response.
 	rr := httptest.NewRecorder()

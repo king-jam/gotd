@@ -69,16 +69,6 @@ func (s *Service) Set(ctx context.Context, g *models.GIF) error {
 	return nil
 }
 
-// UpdateGif will update the current gif will necessary data
-func (s *Service) UpdateGif(g *models.GIF) error {
-	err := s.repo.Update(g)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // GetMostRecent returns the latest GIF that is active
 func (s *Service) Latest(ctx context.Context) (*models.GIF, error) {
 	g, err := s.repo.Last()
