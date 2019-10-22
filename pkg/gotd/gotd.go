@@ -11,6 +11,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/king-jam/gotd/pkg/dashboard"
 	"github.com/king-jam/gotd/pkg/gif"
+	gifRepo "github.com/king-jam/gotd/pkg/gif/repository"
+	gifSvc "github.com/king-jam/gotd/pkg/gif/service"
 	"github.com/king-jam/gotd/pkg/postgres"
 	"github.com/king-jam/gotd/pkg/slack"
 )
@@ -86,8 +88,8 @@ func initializeDatabase() (*gorm.DB, error) {
 	return db, nil
 }
 
-func initializeGifService(db *gorm.DB) (*gif.Service, error) {
-	repo, err := gif.NewGIFRepo(db)
+func initializeGifService(db *gorm.DB) (gif.Service, error) {
+	repo, err := gifRepo.New(db)
 	if err != nil {
 		return nil, fmt.Errorf("unable to initialize the repository: %s", err)
 	}
@@ -96,18 +98,23 @@ func initializeGifService(db *gorm.DB) (*gif.Service, error) {
 		return nil, fmt.Errorf("unable to initialize the schemas: %s", err)
 	}
 
-	gifService := gif.NewGifService(repo)
+	gifService := gifSvc.New(repo)
 
 	return gifService, nil
 }
 
-func initializeHTTPServices(gifService *gif.Service) (*http.Server, error) {
+func initializeHTTPServices(gifService gif.Service) (*http.Server, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		return nil, errors.New("$PORT must be set")
 	}
 
-	siHandler := slack.New(gifService)
+	verificationToken := os.Getenv("SLACK_VERIFICATION_TOKEN")
+	if verificationToken == "" {
+		return nil, errors.New("$SLACK_VERIFICATION_TOKEN must be set")
+	}
+
+	siHandler := slack.New(gifService, verificationToken)
 	dashboardHandler := dashboard.New(gifService)
 
 	appMux := http.NewServeMux()

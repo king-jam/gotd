@@ -1,11 +1,14 @@
 package slack
 
 import (
+	"context"
+	"errors"
+
 	log "github.com/sirupsen/logrus"
 
 	"net/http"
-	"os"
 
+	"github.com/king-jam/gotd/pkg/api/models"
 	"github.com/king-jam/gotd/pkg/gif"
 	"github.com/nlopes/slack"
 )
@@ -13,12 +16,13 @@ import (
 const successMsg = "GIF Successfully posted to GOTD"
 
 // New returns a handler for incoming Slack supported commands
-func New(service *gif.Service) http.Handler {
-	return slashCommandHandler{service: service}
+func New(service gif.Service, verificationToken string) http.Handler {
+	return slashCommandHandler{service: service, verificationToken: verificationToken}
 }
 
 type slashCommandHandler struct {
-	service *gif.Service
+	service           gif.Service
+	verificationToken string
 }
 
 // Slack command handler
@@ -31,53 +35,61 @@ func (h slashCommandHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	// Validate if command is from slack
-	if !s.ValidateToken(os.Getenv("SLACK_VERIFICATION_TOKEN")) {
-		log.Debugf("unable to validate slack token: %s", err)
-		w.WriteHeader(http.StatusUnauthorized)
+
+	userCmd := "Requested GIF\n" + s.Text
+
+	w.WriteHeader(http.StatusOK)
+
+	err = h.updateGIF(s)
+	if err != nil {
+		log.Debugf("request failed: %s", err)
+		msg := []byte(userCmd + "\n" + err.Error())
+
+		if _, err := w.Write(msg); err != nil {
+			log.Debugf("write failed: %s", err)
+		}
 
 		return
 	}
 
-	userCmd := "Requested GIF\n" + s.Text
+	if _, err := w.Write([]byte(userCmd + "\n" + successMsg)); err != nil {
+		log.Debugf("write failed with err: %s", err)
+	}
+}
+
+const gotdCommand = "/gotd"
+
+var errTokenInvalid = errors.New("unable to validate slack token")
+var errInvalidCommand = errors.New("invalid slash command sent")
+var errUnauthorizedUser = errors.New("user not authorized")
+var errUpdating = errors.New("error setting")
+
+func (h slashCommandHandler) updateGIF(s slack.SlashCommand) error {
+	// Validate if command is from slack
+	if !s.ValidateToken(h.verificationToken) {
+		return errTokenInvalid
+	}
 
 	switch s.Command {
-	case "/gotd":
+	case gotdCommand:
 		// Validate user against the user pool
-		userID := s.UserID
-		if !h.validateUser(userID) {
-			response := userCmd + "\n" + "You don't have permission to change GOTD"
-			if _, err := w.Write([]byte(response)); err != nil {
-				log.Debugf("write failed with err: %s", err)
-			}
-
-			return
+		if !h.validateUser(s.UserID) {
+			return errUnauthorizedUser
 		}
 
-		newGif := &gif.GIF{
+		newGif := &models.GIF{
 			URL:         s.Text,
 			RequestSrc:  "slack",
 			RequesterID: s.UserID,
 		}
 
-		err = h.service.StoreGif(newGif)
+		err := h.service.Set(context.Background(), newGif)
 		if err != nil {
-			log.Print(err)
-			w.WriteHeader(http.StatusOK)
-
-			if _, err := w.Write([]byte(userCmd + "\n" + err.Error())); err != nil {
-				log.Debugf("write failed with err: %s", err)
-			}
-
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-
-		if _, err := w.Write([]byte(userCmd + "\n" + successMsg)); err != nil {
-			log.Debugf("write failed with err: %s", err)
+			return errUpdating
 		}
 	default:
-		return
+		return errInvalidCommand
 	}
+
+	return nil
 }
