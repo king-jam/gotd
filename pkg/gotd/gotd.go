@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-http-utils/etag"
 	"github.com/jinzhu/gorm"
 	"github.com/king-jam/gotd/pkg/dashboard"
 	"github.com/king-jam/gotd/pkg/gif"
@@ -119,7 +120,7 @@ func initializeHTTPServices(gifService gif.Service) (*http.Server, error) {
 
 	appMux := http.NewServeMux()
 	appMux.Handle("/receive", siHandler)
-	appMux.Handle("/gif", dashboardHandler)
+	appMux.Handle("/gif", etag.Handler(dashboardHandler, false))
 	appMux.Handle("/", http.FileServer(http.Dir("./static/dashboard")))
 
 	return &http.Server{

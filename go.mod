@@ -3,6 +3,9 @@ module github.com/king-jam/gotd
 go 1.12
 
 require (
+	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
+	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
+	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.3
 	github.com/go-openapi/swag v0.19.5
