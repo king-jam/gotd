@@ -33,15 +33,15 @@ type testCase struct {
 func TestSlackHandler(t *testing.T) {
 	tests := map[string]testCase{
 		"valid setup": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true, true},
+			inputs:   inputValues{"WR8LAPMKK", "/gotd", true, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nGIF Successfully posted to GOTD"},
 		},
 		"bad token": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, false, true},
+			inputs:   inputValues{"WR8LAPMKK", "/gotd", true, false, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nunable to validate slack token"},
 		},
 		"bad gif service": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", false, true, true},
+			inputs:   inputValues{"WR8LAPMKK", "/gotd", false, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nerror setting"},
 		},
 		"invalid user": {
@@ -49,11 +49,11 @@ func TestSlackHandler(t *testing.T) {
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\nuser not authorized"},
 		},
 		"bad command": {
-			inputs:   inputValues{"U5T9HLMAN", "/wrongcommand", true, true, true},
+			inputs:   inputValues{"WR8LAPMKK", "/wrongcommand", true, true, true},
 			expected: expectedValues{200, "Requested GIF\nwww.link.com\ninvalid slash command sent"},
 		},
 		"fails to parse": {
-			inputs:   inputValues{"U5T9HLMAN", "/gotd", true, true, false},
+			inputs:   inputValues{"WR8LAPMKK", "/gotd", true, true, false},
 			expected: expectedValues{500, ""},
 		},
 	}
