@@ -11,7 +11,7 @@ func TestValidateUser(t *testing.T) {
 		id       string
 		expected bool
 	}{
-		"valid ID":   {id: "U5T9HLMAN", expected: true},
+		"valid ID":   {id: "WR8LAPMKK", expected: true},
 		"invalid ID": {id: "THEBADMAN", expected: false},
 	}
 
