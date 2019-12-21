@@ -1,3 +1,4 @@
+// Package postgres provides a gorm DB instance for postgres
 package postgres
 
 import (

@@ -69,7 +69,7 @@ func (s *Service) Set(ctx context.Context, g *models.GIF) error {
 	return nil
 }
 
-// GetMostRecent returns the latest GIF that is active
+// Latest returns the latest GIF that is active
 func (s *Service) Latest(ctx context.Context) (*models.GIF, error) {
 	g, err := s.repo.Last()
 	if err != nil {

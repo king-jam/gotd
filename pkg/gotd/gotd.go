@@ -1,3 +1,4 @@
+// Package gotd provides the main app instance
 package gotd
 
 import (
@@ -18,6 +19,7 @@ import (
 	"github.com/king-jam/gotd/pkg/slack"
 )
 
+// App stores the global state of GOTD
 type App struct {
 	database *gorm.DB
 	server   *http.Server
