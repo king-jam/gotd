@@ -1,3 +1,4 @@
+// Package repository provides a postgres implementation of the GIF repo interface
 package repository
 
 import (
@@ -53,7 +54,7 @@ func (r *Repo) Update(g *models.GIF) error {
 	return nil
 }
 
-// LatestGIF gets the latest entry from the database
+// Last gets the latest entry from the database
 func (r *Repo) Last() (*models.GIF, error) {
 	g := new(models.GIF)
 	if result := r.DB.Model(&models.GIF{}).Last(g); result.Error != nil {
