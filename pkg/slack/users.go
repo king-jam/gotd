@@ -20,7 +20,7 @@ func (h slashCommandHandler) validateUser(userID string) bool {
 		"WR8LBN249", // Sammie G
 		"WR8LBPNV7", // Nicole R
 		"WR54WA943", // Erin B
-		"WRK98THJS", // Jim C
+		"WRJQTFTFY", // Jim C
 		"WRGJYNQ7P", // Jeff E
 		"WRG5816CU", // Charles W
 		"WR54X6ZKM", // Calvin C
