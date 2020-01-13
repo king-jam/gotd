@@ -18,8 +18,8 @@ func main() {
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 
 	go func() {
-		// service connections
 		log.Infof("GOTD Starting")
+		// service connections
 		if err := app.Start(); err != nil {
 			log.Fatalf("GOTD Run Error: %s\n", err)
 		}
