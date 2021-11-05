@@ -23,5 +23,5 @@ var (
 type ErrDatabaseGeneral string
 
 func (edg ErrDatabaseGeneral) Error() string {
-	return fmt.Sprintf("General Database Error: %s", edg)
+	return fmt.Sprintf("General Database Error: %s", string(edg))
 }
