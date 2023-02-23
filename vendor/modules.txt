@@ -1,7 +1,3 @@
-# github.com/PuerkitoBio/purell v1.1.1
-## explicit
-# github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
-## explicit
 # github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 ## explicit; go 1.13
 github.com/asaskevich/govalidator
@@ -39,8 +35,6 @@ github.com/go-openapi/jsonreference/internal
 # github.com/go-openapi/loads v0.21.1
 ## explicit; go 1.13
 github.com/go-openapi/loads
-# github.com/go-openapi/runtime v0.24.1
-## explicit; go 1.15
 # github.com/go-openapi/spec v0.20.6
 ## explicit; go 1.13
 github.com/go-openapi/spec
@@ -117,15 +111,11 @@ go.mongodb.org/mongo-driver/bson/bsonrw
 go.mongodb.org/mongo-driver/bson/bsontype
 go.mongodb.org/mongo-driver/bson/primitive
 go.mongodb.org/mongo-driver/x/bsonx/bsoncore
-# golang.org/x/net v0.0.0-20220516155154-20f960328961
-## explicit; go 1.17
-# golang.org/x/sys v0.0.0-20220513210249-45d2b4557a2a
+# golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.7
-## explicit; go 1.17
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2
